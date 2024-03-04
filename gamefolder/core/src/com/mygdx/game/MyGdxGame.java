@@ -6,6 +6,7 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.utils.ScreenUtils;
 
 public class MyGdxGame extends ApplicationAdapter {
+	//THIS IS A TEST COMMENT
 	SpriteBatch batch;
 	Texture img;
 	
