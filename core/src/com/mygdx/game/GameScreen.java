@@ -10,6 +10,11 @@ import com.badlogic.gdx.audio.Music;
 import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.Batch;
+import com.badlogic.gdx.graphics.g2d.Sprite;
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.maps.tiled.TiledMap;
+import com.badlogic.gdx.maps.tiled.TmxMapLoader;
 import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Rectangle;
@@ -21,171 +26,121 @@ import com.badlogic.gdx.Input;
 
 public class GameScreen implements Screen {
     final MyGdxGame game;
-    Texture dropImage;
-    Texture bucketImage;
-    Sound dropSound;
-    Music rainMusic;
     OrthographicCamera camera;
-    Rectangle bucket;
-    Array<Rectangle> raindrops;
-    long lastDropTime;
-    int dropsGathered;
+    private TiledMap map;
+    private OrthogonalTiledMapRenderer renderer;
+    private Sprite sprite;
+    private Vector3 clickCoordinates;
+    Batch batch;
 
     public GameScreen(final MyGdxGame game) {
         this.game = game;
 
-        dropImage = new Texture(Gdx.files.internal("coinTest.gif"));
-		bucketImage = new Texture(Gdx.files.internal("whitetailwalking.gif"));
-
-		dropSound = Gdx.audio.newSound(Gdx.files.internal("underwater.mp3"));
-		rainMusic = Gdx.audio.newMusic(Gdx.files.internal("sunflower.mp3"));
-        rainMusic.setLooping(true);
-
-        // create the camera and the SpriteBatch
+        batch = new SpriteBatch();
         camera = new OrthographicCamera();
-        camera.setToOrtho(false, 800, 480);
+        camera.setToOrtho(false, 1000, 500);
 
-        // create a Rectangle to logically represent the bucket
-        bucket = new Rectangle();
-        bucket.x = 800 / 2 - 64 / 2; // center the bucket horizontally
-        bucket.y = 20; // bottom left corner of the bucket is 20 pixels above
-        // the bottom screen edge
-        bucket.width = 64;
-        bucket.height = 64;
+        // Load the TiledMap
+        map = new TmxMapLoader().load("Map1.tmx");
+        renderer = new OrthogonalTiledMapRenderer(map);
+        Texture texture = new Texture(Gdx.files.internal("apple.jpg"));
+        sprite = new Sprite(texture);
+        sprite.setPosition(0, 105);
 
-        // create the raindrops array and spawn the first raindrop
-        raindrops = new Array<Rectangle>();
-        spawnRaindrop();
-
-    }
-
-    private void spawnRaindrop() {
-        Rectangle raindrop = new Rectangle();
-        raindrop.x = MathUtils.random(0, 800 - 64);
-        raindrop.y = 480;
-        raindrop.width = 64;
-        raindrop.height = 64;
-        raindrops.add(raindrop);
-        lastDropTime = TimeUtils.nanoTime();
+        clickCoordinates = new Vector3();
     }
 
     @Override
     public void render(float delta) {
-        // clear the screen with a dark blue color. The
-        // arguments to clear are the red, green
-        // blue and alpha component in the range [0,1]
-        // of the color to be used to clear the screen.
-        ScreenUtils.clear(.8f, .65f, .65f, 1);
-
-        // tell the camera to update its matrices.
-        camera.update();
-
-        // tell the SpriteBatch to render in the
-        // coordinate system specified by the camera.
-        game.batch.setProjectionMatrix(camera.combined);
-
-        // begin a new batch and draw the bucket and
-        // all drops
-        game.batch.begin();
-
-        game.batch.draw(bucketImage, bucket.x, bucket.y, bucket.width, bucket.height);
-        for (Rectangle raindrop : raindrops) {
-            game.batch.draw(dropImage, raindrop.x, raindrop.y);
-        }
-        game.batch.end();
-
-        //MOUSE INPUT
-		if(Gdx.input.isTouched()) {
-			Vector3 touchPos = new Vector3();
-			touchPos.set(Gdx.input.getX(), Gdx.input.getY(), 0);
-			camera.unproject(touchPos);
-			bucket.x = touchPos.x - 50 / 2;
-			bucket.y = touchPos.y - 50 / 2;
-		}
-		//KEYS INPUT
-		if(Gdx.input.isKeyPressed(Input.Keys.A)) bucket.x -= 200 * Gdx.graphics.getDeltaTime();
-		if(Gdx.input.isKeyPressed(Input.Keys.D)) bucket.x += 200 * Gdx.graphics.getDeltaTime();
-
-		if(Gdx.input.isKeyPressed(Input.Keys.S)) bucket.y -= 200 * Gdx.graphics.getDeltaTime();
-		if(Gdx.input.isKeyPressed(Input.Keys.W)) bucket.y += 200 * Gdx.graphics.getDeltaTime();
-
-		if(Gdx.input.isKeyPressed(Input.Keys.LEFT)) bucket.x -= 200 * Gdx.graphics.getDeltaTime();
-		if(Gdx.input.isKeyPressed(Input.Keys.RIGHT)) bucket.x += 200 * Gdx.graphics.getDeltaTime();
-
-		if(Gdx.input.isKeyPressed(Input.Keys.DOWN)) bucket.y -= 200 * Gdx.graphics.getDeltaTime();
-		if(Gdx.input.isKeyPressed(Input.Keys.UP)) bucket.y += 200 * Gdx.graphics.getDeltaTime();
-
-        if(Gdx.input.isKeyPressed(Input.Keys.EQUALS)) camera.setToOrtho(false, camera.viewportWidth - 5, camera.viewportHeight - 3);
-        if(Gdx.input.isKeyPressed(Input.Keys.MINUS)) camera.setToOrtho(false, camera.viewportWidth + 5, camera.viewportHeight + 3);
-
-		// make sure the bucket stays within the screen bounds
-		if(bucket.x < 0) bucket.x = 0;
-		if(bucket.x > 800  - 50) bucket.x = 800 - 50;
-
-		if(bucket.y < 0) bucket.y = 0;
-		if(bucket.y > 480  - 50) bucket.y = 480  - 50;
-
-        // make sure the bucket stays within the screen bounds
-        if (bucket.x < 0)
-            bucket.x = 0;
-        if (bucket.x > camera.viewportWidth - 50)
-            bucket.x = camera.viewportWidth - 50;
-
-        if (bucket.y < 0)
-            bucket.y = 0;
-        if (bucket.y > camera.viewportHeight - 50)
-            bucket.y = camera.viewportHeight - 50;
-
-        // check if we need to create a new raindrop
-        if (TimeUtils.nanoTime() - lastDropTime > 1000000000)
-            spawnRaindrop();
-
-        // move the raindrops, remove any that are beneath the bottom edge of
-        // the screen or that hit the bucket. In the later case we increase the
-        // value our drops counter and add a sound effect.
-        Iterator<Rectangle> iter = raindrops.iterator();
-        while (iter.hasNext()) {
-            Rectangle raindrop = iter.next();
-            raindrop.y -= 200 * Gdx.graphics.getDeltaTime();
-            if (raindrop.y + 64 < 0)
-                iter.remove();
-            if (raindrop.overlaps(bucket)) {
-                dropsGathered++;
-                dropSound.play();
-                iter.remove();
-            }
-        }
+        renderGame();
     }
 
-    @Override
-    public void resize(int width, int height) {
+    // Method for rendering the game
+    private void renderGame() {
+        ScreenUtils.clear(.5f, .8f, .8f, 1);
+
+        float speed = 350 * Gdx.graphics.getDeltaTime();
+        if (Gdx.input.isKeyPressed(Input.Keys.LEFT)) {
+            sprite.translateX(-speed);
+        }
+        if (Gdx.input.isKeyPressed(Input.Keys.RIGHT)) {
+            sprite.translateX(speed);
+        }
+        if (Gdx.input.isKeyPressed(Input.Keys.UP)) {
+            sprite.translateY(speed);
+        }
+        if (Gdx.input.isKeyPressed(Input.Keys.DOWN)) {
+            sprite.translateY(-speed);
+        }
+
+        camera.update();
+
+        renderer.setView(camera);
+        renderer.render();
+
+        camera.position.set(sprite.getX() + sprite.getWidth() / 2,
+                sprite.getY() + sprite.getHeight() / 2,
+                0);
+
+        camera.position.x = MathUtils.clamp(camera.position.x,
+                camera.viewportWidth / 2,
+                map.getProperties().get("width", Integer.class) * map.getProperties().get("tilewidth", Integer.class) - camera.viewportWidth / 2);
+        camera.position.y = MathUtils.clamp(camera.position.y,
+                camera.viewportHeight / 2,
+                map.getProperties().get("height", Integer.class) * map.getProperties().get("tileheight", Integer.class) - camera.viewportHeight / 2);
+
+        // Update the camera's view
+        camera.update();
+
+        // Draw the sprite
+        batch.setProjectionMatrix(camera.combined);
+        batch.begin();
+        sprite.draw(batch);
+        batch.end();
+
+        // Check for user input
+        if (Gdx.input.isTouched()) {
+            // Convert screen coordinates to world coordinates
+            clickCoordinates.set(Gdx.input.getX(), Gdx.input.getY(), 0);
+            camera.unproject(clickCoordinates);
+
+            // Move the sprite to the clicked position
+            sprite.setPosition(clickCoordinates.x, clickCoordinates.y);
+        }
     }
 
     @Override
     public void show() {
-        // start the playback of the background music
-        // when the screen is shown
-        rainMusic.play();
-    }
 
+    }
     @Override
-    public void hide() {
+    public void resize(int width, int height) {
+
     }
 
     @Override
     public void pause() {
+
     }
 
     @Override
     public void resume() {
+
+    }
+
+    @Override
+    public void hide() {
+
     }
 
     @Override
     public void dispose() {
-        dropImage.dispose();
-        bucketImage.dispose();
-        dropSound.dispose();
-        rainMusic.dispose();
+        // Dispose of resources
+        map.dispose();
+        renderer.dispose();
+        sprite.getTexture().dispose();
     }
-
 }
+
+
+
