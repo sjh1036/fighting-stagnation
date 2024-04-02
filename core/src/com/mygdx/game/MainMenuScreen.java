@@ -34,7 +34,7 @@ public class MainMenuScreen implements Screen {
         //Set up the camera, background image and background music for the main menu
         camera = new OrthographicCamera();
         camera.setToOrtho(false, 800, 480);
-        backgroundTexture = new Texture(Gdx.files.internal("MenuScreenIMG.png"));
+        backgroundTexture = new Texture(Gdx.files.internal("MenuScreenIMG.jpg"));
         menuMusic = Gdx.audio.newMusic(Gdx.files.internal("MMMusic.mp3"));
         //Begin the main menu music
         menuMusic.setLooping(true);
@@ -59,8 +59,8 @@ public class MainMenuScreen implements Screen {
 
         game.batch.begin();
         float textX = camera.viewportWidth / 4f;
-        font.draw(game.batch, "Fighting Stag-nation", textX, camera.viewportHeight / 2 + 50);
-        font.draw(game.batch, "Click anywhere to begin!", textX, camera.viewportHeight / 2);
+        //font.draw(game.batch, "Fighting Stag-nation", textX, camera.viewportHeight / 2 + 50);
+       // font.draw(game.batch, "Click anywhere to begin!", textX, camera.viewportHeight / 2);
         game.batch.end();
 
         if (Gdx.input.isTouched()) {
