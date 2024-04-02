@@ -31,6 +31,7 @@ public class GameScreen implements Screen {
     private OrthogonalTiledMapRenderer renderer;
     private Sprite sprite;
     private Vector3 clickCoordinates;
+    private Boolean isLeft = true;
     Batch batch;
 
     public GameScreen(final MyGdxGame game) {
@@ -43,9 +44,11 @@ public class GameScreen implements Screen {
         // Load the TiledMap
         map = new TmxMapLoader().load("Map1.tmx");
         renderer = new OrthogonalTiledMapRenderer(map);
-        Texture texture = new Texture(Gdx.files.internal("apple.jpg"));
+        Texture texture = new Texture(Gdx.files.internal("WillisStill.png"));
         sprite = new Sprite(texture);
+        sprite.setSize(125,125);
         sprite.setPosition(0, 105);
+
 
         clickCoordinates = new Vector3();
     }
@@ -61,9 +64,18 @@ public class GameScreen implements Screen {
 
         float speed = 350 * Gdx.graphics.getDeltaTime();
         if (Gdx.input.isKeyPressed(Input.Keys.LEFT)) {
+            if(!isLeft) {
+                sprite.flip(true,false);
+                isLeft=true;
+            }
             sprite.translateX(-speed);
         }
         if (Gdx.input.isKeyPressed(Input.Keys.RIGHT)) {
+            if(isLeft) {
+                sprite.flip(true,false);
+                isLeft=false;
+            }
+
             sprite.translateX(speed);
         }
         if (Gdx.input.isKeyPressed(Input.Keys.UP)) {
