@@ -9,6 +9,7 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont;
 public class MyGdxGame extends Game {
 	public SpriteBatch batch;
 	public BitmapFont font;
+	public static final float PPM = 48;
 
 	@Override
 	public void create() {
