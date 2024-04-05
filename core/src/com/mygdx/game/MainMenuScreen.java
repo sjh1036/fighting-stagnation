@@ -25,47 +25,69 @@ public class MainMenuScreen implements Screen {
     Texture backgroundTexture;
     Music menuMusic;
     BitmapFont font;
-
     OrthographicCamera camera;
+    Rectangle startButton;
+    Rectangle quitButton;
+    Rectangle optionsButton;
 
     public MainMenuScreen(final MyGdxGame game) {
         this.game = game;
 
-        //Set up the camera, background image and background music for the main menu
+    //Set up the camera, background image and background music for the main menu
         camera = new OrthographicCamera();
         camera.setToOrtho(false, 800, 480);
         backgroundTexture = new Texture(Gdx.files.internal("MenuScreenIMG.jpg"));
         menuMusic = Gdx.audio.newMusic(Gdx.files.internal("MMMusic.mp3"));
-        //Begin the main menu music
+
+    //Begin the main menu music
         menuMusic.setLooping(true);
         menuMusic.play();
 
-        //Generate the bitmap font, set the size and dispose of the generator
+
+    //Generate the bitmap font, set the size and dispose of the generator
         FreeTypeFontGenerator generator = new FreeTypeFontGenerator(Gdx.files.internal("FONT.ttf"));
         FreeTypeFontGenerator.FreeTypeFontParameter parameter = new FreeTypeFontGenerator.FreeTypeFontParameter();
         parameter.size = 35;
         font = generator.generateFont(parameter);
         generator.dispose();
+
+    //Set the bounds for the start, quit and options button
+        startButton = new Rectangle(100, 200, 200, 50);
+        quitButton = new Rectangle(100, 150, 200, 50);
+        optionsButton = new Rectangle(100, 100, 200, 50);
     }
     @Override
     public void render(float delta) {
+    //Render the main menu screen
         ScreenUtils.clear(1, 1, 1, 1);
         camera.update();
         game.batch.setProjectionMatrix(camera.combined);
-
         game.batch.begin();
         game.batch.draw(backgroundTexture, 0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         game.batch.end();
 
+    //Render buttons
         game.batch.begin();
-        float textX = camera.viewportWidth / 4f;
-        //font.draw(game.batch, "Fighting Stag-nation", textX, camera.viewportHeight / 2 + 50);
-       // font.draw(game.batch, "Click anywhere to begin!", textX, camera.viewportHeight / 2);
+        font.draw(game.batch, "Start", startButton.x + 20, startButton.y + 30);
+        font.draw(game.batch, "Quit", quitButton.x + 20, quitButton.y + 30);
+        font.draw(game.batch, "Options", optionsButton.x + 20, optionsButton.y + 30);
         game.batch.end();
 
-        if (Gdx.input.isTouched()) {
-            game.setScreen(new GameScreen(game));
-            dispose();
+    //Handle button press (INCLUDE SOUND??)
+        if (Gdx.input.justTouched()) {
+            Vector3 touchPos = new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0);
+            camera.unproject(touchPos);
+        // Handle start button click
+            if (startButton.contains(touchPos.x, touchPos.y)) {
+                game.setScreen(new GameScreen(game));
+                dispose();
+        //Handle quit button click
+            } else if (quitButton.contains(touchPos.x, touchPos.y)) {
+                Gdx.app.exit();
+        //Handle options button click
+            } else if (optionsButton.contains(touchPos.x, touchPos.y)) {
+               //Render options screen here
+            }
         }
     }
 
@@ -84,6 +106,7 @@ public class MainMenuScreen implements Screen {
 
     @Override
     public void pause() {
+
     }
 
     @Override

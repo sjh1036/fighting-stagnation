@@ -17,42 +17,62 @@ import com.badlogic.gdx.maps.tiled.TiledMap;
 import com.badlogic.gdx.maps.tiled.TmxMapLoader;
 import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer;
 import com.badlogic.gdx.math.MathUtils;
+import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.ScreenUtils;
 import com.badlogic.gdx.utils.TimeUtils;
 import com.badlogic.gdx.Input;
+import com.badlogic.gdx.utils.viewport.FitViewport;
+import com.badlogic.gdx.utils.viewport.Viewport;
 
 public class GameScreen implements Screen {
     final MyGdxGame game;
     OrthographicCamera camera;
     private TiledMap map;
     private OrthogonalTiledMapRenderer renderer;
+    private Viewport gamePort;
     private Sprite sprite;
     private Vector3 clickCoordinates;
+    private Texture pauseButton;
+    private boolean isPaused;
+    private Texture pauseOverlayTexture;
+    private hud hud;
+
+
     Batch batch;
 
     public GameScreen(final MyGdxGame game) {
         this.game = game;
-
+       // hud = new hud(game.batch);
         batch = new SpriteBatch();
         camera = new OrthographicCamera();
         camera.setToOrtho(false, 1000, 500);
+        gamePort = new FitViewport(MyGdxGame.V_WIDTH, MyGdxGame.V_HEIGHT, camera);
 
         // Load the TiledMap
         map = new TmxMapLoader().load("Map1.tmx");
         renderer = new OrthogonalTiledMapRenderer(map);
         Texture texture = new Texture(Gdx.files.internal("apple.jpg"));
+        pauseButton = new Texture(Gdx.files.internal("pauseButton.png"));
         sprite = new Sprite(texture);
         sprite.setPosition(0, 105);
 
         clickCoordinates = new Vector3();
+        isPaused = false;
     }
 
     @Override
     public void render(float delta) {
+        ScreenUtils.clear(.5f, .8f, .8f, 1);
+
+        // Draw HUD
+//        game.batch.setProjectionMatrix(hud.stage.getCamera().combined);
+//        hud.stage.act(Math.min(Gdx.graphics.getDeltaTime(), 1 / 30f));
+//        hud.stage.draw();
         renderGame();
+
     }
 
     // Method for rendering the game
@@ -97,16 +117,6 @@ public class GameScreen implements Screen {
         batch.begin();
         sprite.draw(batch);
         batch.end();
-
-        // Check for user input
-        if (Gdx.input.isTouched()) {
-            // Convert screen coordinates to world coordinates
-            clickCoordinates.set(Gdx.input.getX(), Gdx.input.getY(), 0);
-            camera.unproject(clickCoordinates);
-
-            // Move the sprite to the clicked position
-            sprite.setPosition(clickCoordinates.x, clickCoordinates.y);
-        }
     }
 
     @Override
@@ -120,12 +130,13 @@ public class GameScreen implements Screen {
 
     @Override
     public void pause() {
+        isPaused = true;
 
     }
 
     @Override
     public void resume() {
-
+        isPaused = false;
     }
 
     @Override
@@ -139,6 +150,8 @@ public class GameScreen implements Screen {
         map.dispose();
         renderer.dispose();
         sprite.getTexture().dispose();
+        pauseOverlayTexture.dispose();
+        pauseButton.dispose();
     }
 }
 
