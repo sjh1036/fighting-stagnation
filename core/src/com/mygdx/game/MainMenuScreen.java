@@ -1,23 +1,15 @@
 package com.mygdx.game;
 
-import com.badlogic.gdx.ApplicationAdapter;
-import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.audio.Music;
-import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
-import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector3;
-import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.ScreenUtils;
-import com.badlogic.gdx.utils.TimeUtils;
 
 public class MainMenuScreen implements Screen {
 
@@ -29,6 +21,8 @@ public class MainMenuScreen implements Screen {
     Rectangle startButton;
     Rectangle quitButton;
     Rectangle optionsButton;
+    Texture buttonTexture;
+
 
     public MainMenuScreen(final MyGdxGame game) {
         this.game = game;
@@ -52,9 +46,11 @@ public class MainMenuScreen implements Screen {
         generator.dispose();
 
     //Set the bounds for the start, quit and options button
-        startButton = new Rectangle(100, 200, 200, 50);
-        quitButton = new Rectangle(100, 150, 200, 50);
-        optionsButton = new Rectangle(100, 100, 200, 50);
+        startButton = new Rectangle(110, 200, 110, 40);
+        quitButton = new Rectangle(110, 150, 110, 40);
+        optionsButton = new Rectangle(110, 100, 141, 40);
+        buttonTexture = new Texture("266e6e.png");
+
     }
     @Override
     public void render(float delta) {
@@ -66,14 +62,17 @@ public class MainMenuScreen implements Screen {
         game.batch.draw(backgroundTexture, 0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         game.batch.end();
 
-    //Render buttons
         game.batch.begin();
+        game.batch.draw(buttonTexture, startButton.x, startButton.y, startButton.width, startButton.height);
+        game.batch.draw(buttonTexture, quitButton.x, quitButton.y, quitButton.width, quitButton.height);
+        game.batch.draw(buttonTexture, optionsButton.x, optionsButton.y, optionsButton.width, optionsButton.height);
         font.draw(game.batch, "Start", startButton.x + 20, startButton.y + 30);
         font.draw(game.batch, "Quit", quitButton.x + 20, quitButton.y + 30);
         font.draw(game.batch, "Options", optionsButton.x + 20, optionsButton.y + 30);
         game.batch.end();
 
-    //Handle button press (INCLUDE SOUND??)
+
+        //Handle button press (INCLUDE SOUND??)
         if (Gdx.input.justTouched()) {
             Vector3 touchPos = new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0);
             camera.unproject(touchPos);
@@ -118,6 +117,7 @@ public class MainMenuScreen implements Screen {
         backgroundTexture.dispose();
         menuMusic.dispose();
         font.dispose();
+        buttonTexture.dispose();
 
     }
 
