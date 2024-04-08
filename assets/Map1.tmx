@@ -86,7 +86,7 @@
    <polygon points="0,0 -46.5,-0.5 -49.5,-1 -47.5,232.5 -42,239 -35.5,239.5 476,239.5 480,233 479.5,161.5"/>
   </object>
   <object id="11" x="912" y="562" width="1532" height="140"/>
-  <object id="12" x="2416" y="950"/>
+  <object id="12" x="2344" y="664"/>
   <object id="13" x="0" y="1080" width="428" height="106"/>
   <object id="14" x="564" y="1096"/>
   <object id="15" x="582" y="1038" width="336" height="148"/>
@@ -94,7 +94,7 @@
   <object id="17" x="1198" y="1034" width="388" height="144"/>
   <object id="18" x="1570" y="1184"/>
   <object id="19" x="2692" y="552" width="526" height="146"/>
-  <object id="20" x="1726" y="1034">
+  <object id="20" x="1722" y="1038">
    <polygon points="0,0 4,132 6,142 1152,140 1160,138 1156,50 194,44 50,4"/>
   </object>
   <object id="21" x="3270" y="646">
@@ -106,7 +106,7 @@
   <object id="23" x="2974" y="1080" width="96" height="50"/>
   <object id="24" x="3124" y="1122" width="2" height="2"/>
   <object id="25" x="3124" y="1136" width="94" height="52"/>
-  <object id="26" x="3106" y="1084"/>
+  <object id="26" x="2344" y="660"/>
   <object id="27" x="3268" y="1078" width="90" height="56"/>
   <object id="28" x="3350" y="1144"/>
  </objectgroup>

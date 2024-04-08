@@ -1,30 +1,32 @@
 package com.mygdx.game;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.OrthographicCamera;
+import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
+import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
+import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
 public class hud {
     public Stage stage;
     private Viewport viewport;
-    private Integer score;
-    Label scoreLabel;
-    Label timeLabel;
     Label levelLabel;
-    TextButton playButton;
     TextButton pauseButton;
     TextButton quitButton;
     TextButton optionsButton;
 
-    public hud(SpriteBatch sb){
-        score = 0;
+
+    public hud(SpriteBatch sb, final MyGdxGame game){
 
         viewport = new FitViewport(MyGdxGame.V_WIDTH, MyGdxGame.V_HEIGHT, new OrthographicCamera());
         stage = new Stage(viewport, sb);
@@ -33,35 +35,39 @@ public class hud {
         table.top();
         table.setFillParent(true);
 
-        scoreLabel = new Label(String.format("%06d", score), new Label.LabelStyle(new BitmapFont(), Color.WHITE));
-        timeLabel = new Label("TIME", new Label.LabelStyle(new BitmapFont(), Color.WHITE));
-        levelLabel =  new Label("1-1", new Label.LabelStyle(new BitmapFont(), Color.WHITE));
-
-        // Create play button
-        playButton = new TextButton("Play", new TextButton.TextButtonStyle(null, null, null, new BitmapFont()));
-        // Set up play button appearance and behavior as needed
+        levelLabel =  new Label("1-1", new Label.LabelStyle(new BitmapFont(), Color.DARK_GRAY));
+        levelLabel.setFontScale(0.9f);
 
         // Create pause button
-        pauseButton = new TextButton("Pause", new TextButton.TextButtonStyle(null, null, null, new BitmapFont()));
+        pauseButton = createButton("Pause.png", "Pause.png");
         // Set up pause button appearance and behavior as needed
 
         // Create quit button
-        quitButton = new TextButton("Quit", new TextButton.TextButtonStyle(null, null, null, new BitmapFont()));
-        // Set up quit button appearance and behavior as needed
+        quitButton = createButton("Quit.png", "Quit.png");
+        quitButton.addListener(new ClickListener() {
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+                game.switchToMenuScreen();
+            }
+        });
 
         // Create options button
-        optionsButton = new TextButton("Options", new TextButton.TextButtonStyle(null, null, null, new BitmapFont()));
+        optionsButton = createButton("Options.png", "Options.png");
+
+
         // Set up options button appearance and behavior as needed
 
-        table.add(timeLabel).expandX().padTop(10);
-        table.add(scoreLabel).expandX();
-        table.add(levelLabel).expandX();
-        table.row();
-        table.add(playButton).expandX().padTop(10);
-        table.add(pauseButton).expandX().padTop(10);
-        table.add(quitButton).expandX().padTop(10);
-        table.add(optionsButton).expandX().padTop(10);
+        table.add(levelLabel).expandX().pad(0,300,0,0);
+        table.add(pauseButton).expandX();
+        table.add(quitButton).expandX();
+        table.add(optionsButton).expandX();
 
         stage.addActor(table);
+    }
+    private TextButton createButton(String upImage, String downImage) {
+        TextureRegionDrawable upDrawable = new TextureRegionDrawable(new TextureRegion(new Texture(Gdx.files.internal(upImage))));
+        TextureRegionDrawable downDrawable = new TextureRegionDrawable(new TextureRegion(new Texture(Gdx.files.internal(downImage))));
+        TextButton.TextButtonStyle style = new TextButton.TextButtonStyle(upDrawable, downDrawable, null, new BitmapFont());
+        return new TextButton("", style);
     }
 }

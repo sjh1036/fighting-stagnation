@@ -38,11 +38,11 @@ public class MainMenuScreen implements Screen {
         menuMusic.play();
 
 
-    //Generate the bitmap font, set the size and dispose of the generator
+    //Generate the bitmap font, set the size
         FreeTypeFontGenerator generator = new FreeTypeFontGenerator(Gdx.files.internal("FONT.ttf"));
-        FreeTypeFontGenerator.FreeTypeFontParameter parameter = new FreeTypeFontGenerator.FreeTypeFontParameter();
-        parameter.size = 35;
-        font = generator.generateFont(parameter);
+        FreeTypeFontGenerator.FreeTypeFontParameter param = new FreeTypeFontGenerator.FreeTypeFontParameter();
+        param.size = 35;
+        font = generator.generateFont(param);
         generator.dispose();
 
     //Set the bounds for the start, quit and options button
@@ -85,7 +85,7 @@ public class MainMenuScreen implements Screen {
                 Gdx.app.exit();
         //Handle options button click
             } else if (optionsButton.contains(touchPos.x, touchPos.y)) {
-               //Render options screen here
+               //Render options screen?
             }
         }
     }
@@ -118,7 +118,6 @@ public class MainMenuScreen implements Screen {
         menuMusic.dispose();
         font.dispose();
         buttonTexture.dispose();
-
     }
 
 }

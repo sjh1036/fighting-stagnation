@@ -1,4 +1,3 @@
-
 package com.mygdx.game;
 
 import java.util.Iterator;
@@ -6,23 +5,26 @@ import java.util.Iterator;
 import com.badlogic.gdx.Gdx;
 
 import com.badlogic.gdx.Screen;
-import com.badlogic.gdx.audio.Music;
-import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.maps.MapObject;
+import com.badlogic.gdx.maps.objects.PolygonMapObject;
+import com.badlogic.gdx.maps.objects.RectangleMapObject;
 import com.badlogic.gdx.maps.tiled.TiledMap;
 import com.badlogic.gdx.maps.tiled.TmxMapLoader;
 import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer;
 import com.badlogic.gdx.math.MathUtils;
-import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Rectangle;
-import com.badlogic.gdx.math.Vector3;
-import com.badlogic.gdx.utils.Array;
+import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.physics.box2d.BodyDef;
+import com.badlogic.gdx.physics.box2d.Body;
+import com.badlogic.gdx.physics.box2d.Box2DDebugRenderer;
+import com.badlogic.gdx.physics.box2d.FixtureDef;
+import com.badlogic.gdx.physics.box2d.PolygonShape;
+import com.badlogic.gdx.physics.box2d.World;
 import com.badlogic.gdx.utils.ScreenUtils;
-import com.badlogic.gdx.utils.TimeUtils;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
@@ -30,74 +32,91 @@ import com.badlogic.gdx.utils.viewport.Viewport;
 public class GameScreen implements Screen {
     final MyGdxGame game;
     OrthographicCamera camera;
-    private TiledMap map;
-    private OrthogonalTiledMapRenderer renderer;
-    private Viewport gamePort;
-    private Sprite sprite;
-    private Vector3 clickCoordinates;
-    private Texture pauseButton;
-    private boolean isPaused;
-    private Texture pauseOverlayTexture;
-    private hud hud;
-
-
-    Batch batch;
+    private final Viewport gamePort;
+    private final TiledMap map;
+    private final OrthogonalTiledMapRenderer renderer;
+    private final World world;
+    private final Box2DDebugRenderer debugRenderer;
+    private final William william;
+    private final Sprite sprite;
+    private Boolean isLeft = true;
+    SpriteBatch batch;
+    private final hud hud;
 
     public GameScreen(final MyGdxGame game) {
         this.game = game;
-       // hud = new hud(game.batch);
+
+    //Set camera and load map
         batch = new SpriteBatch();
         camera = new OrthographicCamera();
         camera.setToOrtho(false, 1000, 500);
-        gamePort = new FitViewport(MyGdxGame.V_WIDTH, MyGdxGame.V_HEIGHT, camera);
+        gamePort = new FitViewport(800 / MyGdxGame.PPM, 480 / MyGdxGame.PPM, camera);
 
-        // Load the TiledMap
-        map = new TmxMapLoader().load("Map1.tmx");
-        renderer = new OrthogonalTiledMapRenderer(map);
-        Texture texture = new Texture(Gdx.files.internal("apple.jpg"));
-        pauseButton = new Texture(Gdx.files.internal("pauseButton.png"));
+        TmxMapLoader mapLoader = new TmxMapLoader();
+        map = mapLoader.load("Map1.tmx");
+        renderer = new OrthogonalTiledMapRenderer(map, 1 / MyGdxGame.PPM);
+
+    //Load William
+        Texture texture = new Texture(Gdx.files.internal("WillisStill.png"));
         sprite = new Sprite(texture);
-        sprite.setPosition(0, 105);
+        sprite.setSize(125 / MyGdxGame.PPM,125 / MyGdxGame.PPM);
+        sprite.setPosition(0 / MyGdxGame.PPM, 105 / MyGdxGame.PPM);
 
-        clickCoordinates = new Vector3();
-        isPaused = false;
+        //gravity, sleep objs at rest
+        camera.position.set(gamePort.getWorldWidth() / 2, gamePort.getWorldHeight() / 2, 0);
+        world = new World(new Vector2(0, -20), true);
+        debugRenderer = new Box2DDebugRenderer();
+
+        BodyDef bodyDef = new BodyDef();
+        PolygonShape shape = new PolygonShape();
+        FixtureDef fDef = new FixtureDef();
+        Body body;
+
+        //creating objects for each map object
+        for(MapObject object : map.getLayers().get(5).getObjects().getByType(MapObject.class)) {
+            if (object instanceof PolygonMapObject) {
+//                Polygon rec = ((PolygonMapObject) object).getPolygon();
+//                bodyDef.type = BodyDef.BodyType.StaticBody;
+//                bodyDef.position.set((rec.getX() + rec.getWidth() / 2) / MyGdxGame.PPM, (rec.getY() + rec.getHeight() / 2) / MyGdxGame.PPM);
+//
+//                body = world.createBody(bodyDef);
+//
+//                shape.setAsBox(rec.getWidth() / 2 / MyGdxGame.PPM, rec.getHeight() / 2 / MyGdxGame.PPM);
+//                fDef.shape = shape;
+//                body.createFixture(fDef);
+            } else if (object instanceof RectangleMapObject) {
+                Rectangle rec = ((RectangleMapObject) object).getRectangle();
+                bodyDef.type = BodyDef.BodyType.StaticBody;
+                bodyDef.position.set((rec.getX() + rec.getWidth() / 2) / MyGdxGame.PPM, (rec.getY() + rec.getHeight() / 2) / MyGdxGame.PPM);
+
+                body = world.createBody(bodyDef);
+
+                shape.setAsBox(rec.getWidth() / 2 / MyGdxGame.PPM, rec.getHeight() / 2 / MyGdxGame.PPM);
+                fDef.shape = shape;
+                body.createFixture(fDef);
+            }
+        }
+        william = new William(world);
+        hud = new hud(batch, this.game);
+        Gdx.input.setInputProcessor(hud.stage);
+
     }
 
     @Override
     public void render(float delta) {
-        ScreenUtils.clear(.5f, .8f, .8f, 1);
-
-        // Draw HUD
-//        game.batch.setProjectionMatrix(hud.stage.getCamera().combined);
-//        hud.stage.act(Math.min(Gdx.graphics.getDeltaTime(), 1 / 30f));
-//        hud.stage.draw();
-        renderGame();
-
+        renderGame(delta);
+        hud.stage.act(delta);
+        hud.stage.draw();
     }
 
     // Method for rendering the game
-    private void renderGame() {
+    private void renderGame(float delta) {
+        handleInput();
         ScreenUtils.clear(.5f, .8f, .8f, 1);
 
-        float speed = 350 * Gdx.graphics.getDeltaTime();
-        if (Gdx.input.isKeyPressed(Input.Keys.LEFT)) {
-            sprite.translateX(-speed);
-        }
-        if (Gdx.input.isKeyPressed(Input.Keys.RIGHT)) {
-            sprite.translateX(speed);
-        }
-        if (Gdx.input.isKeyPressed(Input.Keys.UP)) {
-            sprite.translateY(speed);
-        }
-        if (Gdx.input.isKeyPressed(Input.Keys.DOWN)) {
-            sprite.translateY(-speed);
-        }
-
-        camera.update();
-
-        renderer.setView(camera);
-        renderer.render();
-
+        debugRenderer.render(world, camera.combined);
+        world.step(1/60f, 6, 2);
+    //Set camera
         camera.position.set(sprite.getX() + sprite.getWidth() / 2,
                 sprite.getY() + sprite.getHeight() / 2,
                 0);
@@ -109,15 +128,51 @@ public class GameScreen implements Screen {
                 camera.viewportHeight / 2,
                 map.getProperties().get("height", Integer.class) * map.getProperties().get("tileheight", Integer.class) - camera.viewportHeight / 2);
 
+        float spriteY = william.body.getPosition().y;
+        float spriteHalfHeight = sprite.getHeight() / 2;
+
+        float mapHeight = map.getProperties().get("height", Integer.class) * map.getProperties().get("tileheight", Integer.class);
+
+        if (spriteY - spriteHalfHeight < 0 || spriteY + spriteHalfHeight > mapHeight) {
+            Gdx.app.exit();
+        }
+
+        camera.update();
+        renderer.setView(camera);
+        renderer.render();
+        sprite.setCenter(william.body.getPosition().x, william.body.getPosition().y);
+
         // Update the camera's view
         camera.update();
-
-        // Draw the sprite
         batch.setProjectionMatrix(camera.combined);
         batch.begin();
         sprite.draw(batch);
         batch.end();
+
     }
+
+    //Input for movement
+    private void handleInput() {
+        if ((Gdx.input.isKeyPressed(Input.Keys.LEFT) || Gdx.input.isKeyPressed(Input.Keys.A)) && william.body.getLinearVelocity().x >= -10) {
+            william.body.applyLinearImpulse(new Vector2(-0.5f, 0), william.body.getWorldCenter(), true);
+            if(!isLeft) {
+                sprite.flip(true,false);
+                isLeft=true;
+            }
+        }
+        if ((Gdx.input.isKeyPressed(Input.Keys.RIGHT) || Gdx.input.isKeyPressed(Input.Keys.D)) && william.body.getLinearVelocity().x <= 10) {
+            william.body.applyLinearImpulse(new Vector2(0.5f, 0), william.body.getWorldCenter(), true);
+            if(isLeft) {
+                sprite.flip(true,false);
+                isLeft=false;
+            }
+        }
+        if (Gdx.input.isKeyPressed(Input.Keys.UP) || Gdx.input.isKeyPressed(Input.Keys.W)|| Gdx.input.isKeyPressed(Input.Keys.SPACE)) {
+            william.body.applyLinearImpulse(new Vector2(0, 1f), william.body.getWorldCenter(), true);
+        }
+
+    }
+
 
     @Override
     public void show() {
@@ -125,18 +180,17 @@ public class GameScreen implements Screen {
     }
     @Override
     public void resize(int width, int height) {
-
+        gamePort.update(width, height);
     }
 
     @Override
     public void pause() {
-        isPaused = true;
 
     }
 
     @Override
     public void resume() {
-        isPaused = false;
+
     }
 
     @Override
@@ -150,10 +204,6 @@ public class GameScreen implements Screen {
         map.dispose();
         renderer.dispose();
         sprite.getTexture().dispose();
-        pauseOverlayTexture.dispose();
-        pauseButton.dispose();
     }
 }
-
-
 
