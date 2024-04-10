@@ -5,6 +5,7 @@ import java.util.Iterator;
 
 import com.badlogic.gdx.Gdx;
 
+import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.audio.Music;
 import com.badlogic.gdx.audio.Sound;
@@ -13,6 +14,7 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.maps.MapObject;
 import com.badlogic.gdx.maps.objects.PolygonMapObject;
 import com.badlogic.gdx.maps.objects.RectangleMapObject;
@@ -27,7 +29,11 @@ import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.box2d.BodyDef;
 import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.physics.box2d.Box2DDebugRenderer;
+import com.badlogic.gdx.physics.box2d.Contact;
+import com.badlogic.gdx.physics.box2d.ContactImpulse;
+import com.badlogic.gdx.physics.box2d.ContactListener;
 import com.badlogic.gdx.physics.box2d.FixtureDef;
+import com.badlogic.gdx.physics.box2d.Manifold;
 import com.badlogic.gdx.physics.box2d.PolygonShape;
 import com.badlogic.gdx.physics.box2d.World;
 import com.badlogic.gdx.utils.Array;
@@ -48,10 +54,10 @@ public class GameScreen implements Screen {
     private World world;
     private Box2DDebugRenderer debugRenderer;
     private William william;
-    private Sprite sprite;
     private Vector3 clickCoordinates;
-    private Boolean isLeft = true;
+    private GameContactListener gcl;
     Batch batch;
+
 
     public GameScreen(final MyGdxGame game) {
         this.game = game;
@@ -65,11 +71,6 @@ public class GameScreen implements Screen {
         map = mapLoader.load("Map1.tmx");
         renderer = new OrthogonalTiledMapRenderer(map, 1 / MyGdxGame.PPM);
 
-        Texture texture = new Texture(Gdx.files.internal("WillisStill.png"));
-        sprite = new Sprite(texture);
-        sprite.setSize(125 / MyGdxGame.PPM,125 / MyGdxGame.PPM);
-        sprite.setPosition(0 / MyGdxGame.PPM, 105 / MyGdxGame.PPM);
-
         clickCoordinates = new Vector3();
 
         //gravity, sleep objs at rest
@@ -80,18 +81,19 @@ public class GameScreen implements Screen {
         BodyDef bodyDef = new BodyDef();
         PolygonShape shape = new PolygonShape();
         FixtureDef fDef = new FixtureDef();
+
         Body body;
 
         //creating objects for each map object
         for(MapObject object : map.getLayers().get(5).getObjects().getByType(MapObject.class)) {
             if (object instanceof PolygonMapObject) {
-//                Polygon rec = ((PolygonMapObject) object).getPolygon();
+//                Polygon poly = ((PolygonMapObject) object).getPolygon();
 //                bodyDef.type = BodyDef.BodyType.StaticBody;
-//                bodyDef.position.set((rec.getX() + rec.getWidth() / 2) / MyGdxGame.PPM, (rec.getY() + rec.getHeight() / 2) / MyGdxGame.PPM);
+//                bodyDef.position.set((poly.getX() + poly.getBoundingRectangle().getWidth()/ 2 ) / MyGdxGame.PPM, (poly.getY() + poly.getBoundingRectangle().getHeight() / 2) / MyGdxGame.PPM);
 //
 //                body = world.createBody(bodyDef);
 //
-//                shape.setAsBox(rec.getWidth() / 2 / MyGdxGame.PPM, rec.getHeight() / 2 / MyGdxGame.PPM);
+//                shape.set(poly.getVertices());
 //                fDef.shape = shape;
 //                body.createFixture(fDef);
             } else if (object instanceof RectangleMapObject) {
@@ -103,21 +105,24 @@ public class GameScreen implements Screen {
 
                 shape.setAsBox(rec.getWidth() / 2 / MyGdxGame.PPM, rec.getHeight() / 2 / MyGdxGame.PPM);
                 fDef.shape = shape;
+                fDef.friction = .75f;
                 body.createFixture(fDef);
             }
         }
+        gcl = new GameContactListener();
+        world.setContactListener(gcl);
         william = new William(world);
-
     }
 
     @Override
     public void render(float delta) {
+        handleInput();
+        william.update(delta);
         renderGame(delta);
     }
 
     // Method for rendering the game
     private void renderGame(float delta) {
-        handleInput();
         ScreenUtils.clear(.5f, .8f, .8f, 1);
 
         debugRenderer.render(world, camera.combined);
@@ -126,43 +131,45 @@ public class GameScreen implements Screen {
         camera.position.x = william.body.getPosition().x;
         camera.position.y = william.body.getPosition().y;
 
-        camera.update();
         renderer.setView(camera);
         renderer.render();
-        sprite.setCenter(william.body.getPosition().x, william.body.getPosition().y);
 
         // Update the camera's view
         camera.update();
         // Draw the sprite
         batch.setProjectionMatrix(camera.combined);
         batch.begin();
-        sprite.draw(batch);
+        william.draw(batch);
         batch.end();
 
     }
 
     private void handleInput() {
         if ((Gdx.input.isKeyPressed(Input.Keys.LEFT) || Gdx.input.isKeyPressed(Input.Keys.A)) && william.body.getLinearVelocity().x >= -10) {
-            william.body.applyLinearImpulse(new Vector2(-0.5f, 0), william.body.getWorldCenter(), true);
-            if(!isLeft) {
-                sprite.flip(true,false);
-                isLeft=true;
-            }
+            william.body.applyLinearImpulse(new Vector2(-0.4f, 0), william.body.getWorldCenter(), true);
+            william.isLeft = true;
         }
         if ((Gdx.input.isKeyPressed(Input.Keys.RIGHT) || Gdx.input.isKeyPressed(Input.Keys.D)) && william.body.getLinearVelocity().x <= 10) {
-            william.body.applyLinearImpulse(new Vector2(0.5f, 0), william.body.getWorldCenter(), true);
-            if(isLeft) {
-                sprite.flip(true,false);
-                isLeft=false;
-            }
+            william.body.applyLinearImpulse(new Vector2(0.4f, 0), william.body.getWorldCenter(), true);
+            william.isLeft = false;
         }
-        if (Gdx.input.isKeyPressed(Input.Keys.UP) || Gdx.input.isKeyPressed(Input.Keys.W)) {
-            william.body.applyLinearImpulse(new Vector2(0, 1f), william.body.getWorldCenter(), true);
+        if (!gcl.inAir && (Gdx.input.isKeyPressed(Input.Keys.UP) || Gdx.input.isKeyPressed(Input.Keys.W))) {
+            william.body.applyLinearImpulse(new Vector2(0, 10f), william.body.getWorldCenter(), true);
+            gcl.inAir = true;
+        }
+
+
+        if (Gdx.input.isKeyJustPressed(Input.Keys.NUM_0)) {
+            william.defineWilliam();
+        }
+        if (Gdx.input.isKeyJustPressed(Input.Keys.SHIFT_LEFT)) {
+            world.setGravity(new Vector2(0, 20));
+        }
+        if (Gdx.input.isKeyJustPressed(Input.Keys.CONTROL_LEFT)) {
+            world.setGravity(new Vector2(0, -20));
         }
 
     }
-
-
     @Override
     public void show() {
 
@@ -171,12 +178,10 @@ public class GameScreen implements Screen {
     public void resize(int width, int height) {
         gamePort.update(width, height);
     }
-
     @Override
     public void pause() {
 
     }
-
     @Override
     public void resume() {
 
@@ -186,15 +191,13 @@ public class GameScreen implements Screen {
     public void hide() {
 
     }
-
     @Override
     public void dispose() {
         // Dispose of resources
         map.dispose();
         renderer.dispose();
-        sprite.getTexture().dispose();
+        william.getTexture().dispose();
     }
+
+
 }
-
-
-
