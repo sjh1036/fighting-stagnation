@@ -36,12 +36,14 @@ public class GameScreen implements Screen {
     private final TiledMap map;
     private final OrthogonalTiledMapRenderer renderer;
     private final World world;
+
     private final Box2DDebugRenderer debugRenderer;
     private final William william;
     private final Sprite sprite;
     private Boolean isLeft = true;
     SpriteBatch batch;
     private final hud hud;
+    public OverlayScreen overlayScreen;
 
     public GameScreen(final MyGdxGame game) {
         this.game = game;
@@ -50,7 +52,7 @@ public class GameScreen implements Screen {
         batch = new SpriteBatch();
         camera = new OrthographicCamera();
         camera.setToOrtho(false, 1000, 500);
-        gamePort = new FitViewport(800 / MyGdxGame.PPM, 480 / MyGdxGame.PPM, camera);
+        gamePort = new FitViewport(950 / MyGdxGame.PPM, 570 / MyGdxGame.PPM, camera);
 
         TmxMapLoader mapLoader = new TmxMapLoader();
         map = mapLoader.load("Map1.tmx");
@@ -99,7 +101,7 @@ public class GameScreen implements Screen {
         william = new William(world);
         hud = new hud(batch, this.game);
         Gdx.input.setInputProcessor(hud.stage);
-
+        overlayScreen = new OverlayScreen(this.game, this);
     }
 
     @Override
@@ -134,7 +136,10 @@ public class GameScreen implements Screen {
         float mapHeight = map.getProperties().get("height", Integer.class) * map.getProperties().get("tileheight", Integer.class);
 
         if (spriteY - spriteHalfHeight < 0 || spriteY + spriteHalfHeight > mapHeight) {
-            Gdx.app.exit();
+            overlayScreen.gameOver();
+            game.setScreen(overlayScreen);
+        } else {
+
         }
 
         camera.update();

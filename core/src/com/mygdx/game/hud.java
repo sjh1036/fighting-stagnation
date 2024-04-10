@@ -39,11 +39,11 @@ public class hud {
         levelLabel.setFontScale(0.9f);
 
         // Create pause button
-        pauseButton = createButton("Pause.png", "Pause.png");
+        pauseButton = createButton("Pause.png", "PauseDown.png");
         // Set up pause button appearance and behavior as needed
 
         // Create quit button
-        quitButton = createButton("Quit.png", "Quit.png");
+        quitButton = createButton("Quit.png", "QuitDown.png");
         quitButton.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
@@ -55,9 +55,7 @@ public class hud {
         optionsButton = createButton("Options.png", "Options.png");
 
 
-        // Set up options button appearance and behavior as needed
-
-        table.add(levelLabel).expandX().pad(0,300,0,0);
+        table.add(levelLabel).expandX().pad(0,270,0,0);
         table.add(pauseButton).expandX();
         table.add(quitButton).expandX();
         table.add(optionsButton).expandX();

@@ -4,28 +4,30 @@
     <option name="autoReloadType" value="NONE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="ee889198-8c29-4d6c-a5fe-f272ae9678ff" name="Changes" comment="I GOt it working!!!!">
-      <change afterPath="$PROJECT_DIR$/assets/Options.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/assets/Pause.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/assets/Quit.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/assets/WillisStill.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/core/src/com/mygdx/game/OverlayScreen.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/core/src/com/mygdx/game/William.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.gradle/8.5/checksums/checksums.lock" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/8.5/checksums/checksums.lock" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.gradle/8.5/checksums/md5-checksums.bin" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/8.5/checksums/md5-checksums.bin" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.gradle/8.5/checksums/sha1-checksums.bin" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/8.5/checksums/sha1-checksums.bin" afterDir="false" />
+    <list default="true" id="ee889198-8c29-4d6c-a5fe-f272ae9678ff" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/assets/MMQuit.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/assets/MMQuitDown.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/assets/OptionsDown.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/assets/PauseDown.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/assets/QuitDown.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/assets/Start.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/assets/StartDown.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/assets/default.fnt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/assets/uiskin.atlas" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/assets/uiskin.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/assets/uiskin.png" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.gradle/8.5/executionHistory/executionHistory.bin" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/8.5/executionHistory/executionHistory.bin" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.gradle/8.5/executionHistory/executionHistory.lock" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/8.5/executionHistory/executionHistory.lock" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.gradle/8.5/fileHashes/fileHashes.bin" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/8.5/fileHashes/fileHashes.bin" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.gradle/8.5/fileHashes/fileHashes.lock" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/8.5/fileHashes/fileHashes.lock" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.gradle/8.5/fileHashes/resourceHashesCache.bin" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/8.5/fileHashes/resourceHashesCache.bin" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.gradle/buildOutputCleanup/buildOutputCleanup.lock" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/buildOutputCleanup/buildOutputCleanup.lock" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.gradle/buildOutputCleanup/outputFiles.bin" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/buildOutputCleanup/outputFiles.bin" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.gradle/config.properties" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/config.properties" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.gradle/file-system.probe" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/file-system.probe" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/assets/Map1.tmx" beforeDir="false" afterPath="$PROJECT_DIR$/assets/Map1.tmx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/assets/pauseButton.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/assets/Options.png" beforeDir="false" afterPath="$PROJECT_DIR$/assets/Options.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/assets/Pause.png" beforeDir="false" afterPath="$PROJECT_DIR$/assets/Pause.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/assets/Quit.png" beforeDir="false" afterPath="$PROJECT_DIR$/assets/Quit.png" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/core/build/classes/java/main/com/mygdx/game/GameScreen.class" beforeDir="false" afterPath="$PROJECT_DIR$/core/build/classes/java/main/com/mygdx/game/GameScreen.class" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/core/build/classes/java/main/com/mygdx/game/MainMenuScreen.class" beforeDir="false" afterPath="$PROJECT_DIR$/core/build/classes/java/main/com/mygdx/game/MainMenuScreen.class" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/core/build/classes/java/main/com/mygdx/game/MyGdxGame.class" beforeDir="false" afterPath="$PROJECT_DIR$/core/build/classes/java/main/com/mygdx/game/MyGdxGame.class" afterDir="false" />
@@ -34,12 +36,10 @@
       <change beforePath="$PROJECT_DIR$/core/src/com/mygdx/game/GameScreen.java" beforeDir="false" afterPath="$PROJECT_DIR$/core/src/com/mygdx/game/GameScreen.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/core/src/com/mygdx/game/MainMenuScreen.java" beforeDir="false" afterPath="$PROJECT_DIR$/core/src/com/mygdx/game/MainMenuScreen.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/core/src/com/mygdx/game/MyGdxGame.java" beforeDir="false" afterPath="$PROJECT_DIR$/core/src/com/mygdx/game/MyGdxGame.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/src/com/mygdx/game/OverlayScreen.java" beforeDir="false" afterPath="$PROJECT_DIR$/core/src/com/mygdx/game/OverlayScreen.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/core/src/com/mygdx/game/hud.java" beforeDir="false" afterPath="$PROJECT_DIR$/core/src/com/mygdx/game/hud.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/desktop/build/libs/desktop-1.0.jar" beforeDir="false" afterPath="$PROJECT_DIR$/desktop/build/libs/desktop-1.0.jar" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/desktop/build/resources/main/Map1.tmx" beforeDir="false" afterPath="$PROJECT_DIR$/desktop/build/resources/main/Map1.tmx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/desktop/build/tmp/compileJava/previous-compilation-data.bin" beforeDir="false" afterPath="$PROJECT_DIR$/desktop/build/tmp/compileJava/previous-compilation-data.bin" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/gamefolder/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/gamefolder/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/local.properties" beforeDir="false" afterPath="$PROJECT_DIR$/local.properties" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -113,10 +113,10 @@
     "RunOnceActivity.cidr.known.project.marker": "true",
     "cf.first.check.clang-format": "false",
     "cidr.known.project.marker": "true",
-    "git-widget-placeholder": "Merging Emily",
+    "git-widget-placeholder": "Emily",
     "ignore.virus.scanning.warn.message": "true",
     "last_opened_file_path": "C:/Users/goodb/fighting-stag-nation/assets",
-    "settings.editor.selected.configurable": "AndroidSdkUpdater"
+    "settings.editor.selected.configurable": "preferences.pluginManager"
   }
 }]]></component>
   <component name="RecentsManager">
@@ -160,7 +160,15 @@
       <option name="project" value="LOCAL" />
       <updated>1711936910078</updated>
     </task>
-    <option name="localTasksCounter" value="3" />
+    <task id="LOCAL-00003" summary="Mock HUD and map boundary updates">
+      <option name="closed" value="true" />
+      <created>1712610453705</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1712610453705</updated>
+    </task>
+    <option name="localTasksCounter" value="4" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -177,6 +185,7 @@
   <component name="VcsManagerConfiguration">
     <MESSAGE value="Rough draft of main menu screen&#10;    -Music&#10;    -Background Image&#10;    -New Bitmap font&#10; &#10;Tiled map rendering on start&#10;    -Map moves from user input with random sprite&#10;  **Platforms do not yet have properties**" />
     <MESSAGE value="I GOt it working!!!!" />
-    <option name="LAST_COMMIT_MESSAGE" value="I GOt it working!!!!" />
+    <MESSAGE value="Mock HUD and map boundary updates" />
+    <option name="LAST_COMMIT_MESSAGE" value="Mock HUD and map boundary updates" />
   </component>
 </project>
