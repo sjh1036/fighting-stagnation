@@ -7,11 +7,8 @@ import com.badlogic.gdx.Gdx;
 
 import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.Screen;
-import com.badlogic.gdx.audio.Music;
-import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
@@ -56,18 +53,22 @@ public class GameScreen implements Screen {
     private William william;
     private Vector3 clickCoordinates;
     private GameContactListener gcl;
-    Batch batch;
 
+    private Boolean isLeft = true;
+    SpriteBatch batch;
+    private final hud hud;
+    public OverlayScreen overlayScreen;
 
     public GameScreen(final MyGdxGame game) {
         this.game = game;
 
+    //Set camera and load map
         batch = new SpriteBatch();
         camera = new OrthographicCamera();
         camera.setToOrtho(false, 1000, 500);
-        gamePort = new FitViewport(800 / MyGdxGame.PPM, 480 / MyGdxGame.PPM, camera);
+        gamePort = new FitViewport(950 / MyGdxGame.PPM, 570 / MyGdxGame.PPM, camera);
 
-        mapLoader = new TmxMapLoader();
+        TmxMapLoader mapLoader = new TmxMapLoader();
         map = mapLoader.load("Map1.tmx");
         renderer = new OrthogonalTiledMapRenderer(map, 1 / MyGdxGame.PPM);
 
@@ -81,7 +82,6 @@ public class GameScreen implements Screen {
         BodyDef bodyDef = new BodyDef();
         PolygonShape shape = new PolygonShape();
         FixtureDef fDef = new FixtureDef();
-
         Body body;
 
         //creating objects for each map object
@@ -112,6 +112,9 @@ public class GameScreen implements Screen {
         gcl = new GameContactListener();
         world.setContactListener(gcl);
         william = new William(world);
+        hud = new hud(batch, this.game);
+        Gdx.input.setInputProcessor(hud.stage);
+        overlayScreen = new OverlayScreen(this.game, this);
     }
 
     @Override
@@ -119,17 +122,43 @@ public class GameScreen implements Screen {
         handleInput();
         william.update(delta);
         renderGame(delta);
+        hud.stage.act(delta);
+        hud.stage.draw();
     }
 
     // Method for rendering the game
     private void renderGame(float delta) {
+        handleInput();
         ScreenUtils.clear(.5f, .8f, .8f, 1);
 
         debugRenderer.render(world, camera.combined);
         world.step(1/60f, 6, 2);
+    //Set camera
+        camera.position.set(william.getX() + william.getWidth() / 2,
+                william.getY() + william.getHeight() / 2,
+                0);
 
+        camera.position.x = MathUtils.clamp(camera.position.x,
+                camera.viewportWidth / 2,
+                map.getProperties().get("width", Integer.class) * map.getProperties().get("tilewidth", Integer.class) - camera.viewportWidth / 2);
+        camera.position.y = MathUtils.clamp(camera.position.y,
+                camera.viewportHeight / 2,
+                map.getProperties().get("height", Integer.class) * map.getProperties().get("tileheight", Integer.class) - camera.viewportHeight / 2);
+
+        float spriteY = william.body.getPosition().y;
+        float spriteHalfHeight = william.getHeight() / 2;
+
+        float mapHeight = map.getProperties().get("height", Integer.class) * map.getProperties().get("tileheight", Integer.class);
+
+        if (spriteY - spriteHalfHeight < 0 || spriteY + spriteHalfHeight > mapHeight) {
+            overlayScreen.gameOver();
+            game.setScreen(overlayScreen);
+        } else {
+
+        }
         camera.position.x = william.body.getPosition().x;
         camera.position.y = william.body.getPosition().y;
+
 
         renderer.setView(camera);
         renderer.render();
@@ -144,6 +173,7 @@ public class GameScreen implements Screen {
 
     }
 
+    //Input for movement
     private void handleInput() {
         if ((Gdx.input.isKeyPressed(Input.Keys.LEFT) || Gdx.input.isKeyPressed(Input.Keys.A)) && william.body.getLinearVelocity().x >= -10) {
             william.body.applyLinearImpulse(new Vector2(-0.4f, 0), william.body.getWorldCenter(), true);
@@ -178,10 +208,12 @@ public class GameScreen implements Screen {
     public void resize(int width, int height) {
         gamePort.update(width, height);
     }
+
     @Override
     public void pause() {
 
     }
+
     @Override
     public void resume() {
 
@@ -191,6 +223,7 @@ public class GameScreen implements Screen {
     public void hide() {
 
     }
+
     @Override
     public void dispose() {
         // Dispose of resources
@@ -198,6 +231,7 @@ public class GameScreen implements Screen {
         renderer.dispose();
         william.getTexture().dispose();
     }
-
-
 }
+
+
+
