@@ -25,7 +25,7 @@ public class MainMenuScreen implements Screen {
     final MyGdxGame game;
     Texture backgroundTexture;
     Stage stage;
-    Music menuMusic;
+    public Music menuMusic;
     BitmapFont font;
     OrthographicCamera camera;
     TextButton startButton;

@@ -110,7 +110,7 @@ public class William extends Sprite {
         return State.STANDING;
     }
     public void drawWilliam() {
-        this.setSize(150 / MyGdxGame.PPM,150 / MyGdxGame.PPM);
+        this.setSize(125 / MyGdxGame.PPM,125 / MyGdxGame.PPM);
         this.setPosition(0 / MyGdxGame.PPM, 105 / MyGdxGame.PPM);
     }
 
@@ -123,7 +123,7 @@ public class William extends Sprite {
 
         FixtureDef fdef = new FixtureDef();
         PolygonShape shape = new PolygonShape();
-        shape.setAsBox(50 / MyGdxGame.PPM, 50 / MyGdxGame.PPM);
+        shape.setAsBox(40 / MyGdxGame.PPM, 40 / MyGdxGame.PPM);
 
         fdef.shape = shape;
         body.createFixture(fdef);
@@ -135,25 +135,25 @@ public class William extends Sprite {
         FixtureDef fdef = new FixtureDef();
 
         EdgeShape bottom = new EdgeShape();
-        bottom.set(new Vector2(-49 / MyGdxGame.PPM, -51 / MyGdxGame.PPM), new Vector2(49 / MyGdxGame.PPM, -51 / MyGdxGame.PPM));
+        bottom.set(new Vector2(-39 / MyGdxGame.PPM, -41 / MyGdxGame.PPM), new Vector2(39 / MyGdxGame.PPM, -41 / MyGdxGame.PPM));
         fdef.shape = bottom;
         fdef.isSensor = true;
         body.createFixture(fdef).setUserData("bottom");
 
         EdgeShape top = new EdgeShape();
-        top.set(new Vector2(-49 / MyGdxGame.PPM, 50 / MyGdxGame.PPM), new Vector2(49 / MyGdxGame.PPM, 50 / MyGdxGame.PPM));
+        top.set(new Vector2(-39 / MyGdxGame.PPM, 40 / MyGdxGame.PPM), new Vector2(39 / MyGdxGame.PPM, 40 / MyGdxGame.PPM));
         fdef.shape = top;
         fdef.isSensor = true;
         body.createFixture(fdef).setUserData("top");
 
         EdgeShape left = new EdgeShape();
-        left.set(new Vector2(-50 / MyGdxGame.PPM, -49 / MyGdxGame.PPM), new Vector2(-50 / MyGdxGame.PPM, 49 / MyGdxGame.PPM));
+        left.set(new Vector2(-40 / MyGdxGame.PPM, -39 / MyGdxGame.PPM), new Vector2(-40 / MyGdxGame.PPM, 39 / MyGdxGame.PPM));
         fdef.shape = left;
         fdef.isSensor = true;
         body.createFixture(fdef).setUserData("left");
 
         EdgeShape right = new EdgeShape();
-        right.set(new Vector2(50 / MyGdxGame.PPM, -49 / MyGdxGame.PPM), new Vector2(50 / MyGdxGame.PPM, 49 / MyGdxGame.PPM));
+        right.set(new Vector2(40 / MyGdxGame.PPM, -39 / MyGdxGame.PPM), new Vector2(40 / MyGdxGame.PPM, 39 / MyGdxGame.PPM));
         fdef.shape = right;
         fdef.isSensor = true;
         body.createFixture(fdef).setUserData("right");
