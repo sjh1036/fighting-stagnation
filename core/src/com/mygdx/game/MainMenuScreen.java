@@ -66,7 +66,6 @@ public class MainMenuScreen implements Screen {
         quitButton.setPosition(100, 150);
         quitButton.setSize(110, 45);
 
-
         optionsButton.setPosition(100, 100);
         optionsButton.setSize(140, 45);
         optionsMenu = new OverlayScreen(game, this);

@@ -1,12 +1,14 @@
 
 package com.mygdx.game;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Iterator;
 
 import com.badlogic.gdx.Gdx;
 
 import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.Screen;
+import com.badlogic.gdx.audio.Music;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Sprite;
@@ -31,6 +33,7 @@ import com.badlogic.gdx.physics.box2d.ChainShape;
 import com.badlogic.gdx.physics.box2d.Contact;
 import com.badlogic.gdx.physics.box2d.ContactImpulse;
 import com.badlogic.gdx.physics.box2d.ContactListener;
+import com.badlogic.gdx.physics.box2d.EdgeShape;
 import com.badlogic.gdx.physics.box2d.FixtureDef;
 import com.badlogic.gdx.physics.box2d.Manifold;
 import com.badlogic.gdx.physics.box2d.PolygonShape;
@@ -51,15 +54,16 @@ public class GameScreen implements Screen {
     private TmxMapLoader mapLoader;
     private TiledMap map;
     private OrthogonalTiledMapRenderer renderer;
-    private World world;
+    public World world;
     private Box2DDebugRenderer debugRenderer;
     private William william;
     private Vector3 clickCoordinates;
     private GameContactListener gcl;
-
     private Boolean isLeft = true;
     SpriteBatch batch;
     private final hud hud;
+    private Music music;
+    public OverlayScreen overlayScreen;
     public OverlayScreen gameOverMenu;
 
     public GameScreen(final MyGdxGame game) {
@@ -75,6 +79,11 @@ public class GameScreen implements Screen {
         map = mapLoader.load("Map1.tmx");
         renderer = new OrthogonalTiledMapRenderer(map, 1 / MyGdxGame.PPM);
 
+        music = Gdx.audio.newMusic(Gdx.files.internal("MMMusic.mp3"));
+        music.setVolume(.1f);
+        music.setLooping(true);
+        music.play();
+
         clickCoordinates = new Vector3();
 
         //gravity, sleep objs at rest
@@ -84,10 +93,9 @@ public class GameScreen implements Screen {
 
 
         //creating objects for each map object
-
         buildMapObjects();
 
-        gcl = new GameContactListener();
+        gcl = new GameContactListener(this);
         world.setContactListener(gcl);
         william = new William(world, gcl);
         hud = new hud(batch, this.game);
@@ -233,6 +241,58 @@ public class GameScreen implements Screen {
                 shape.dispose();
             }
         }
+        for (MapObject object: map.getLayers().get(6).getObjects().getByType(MapObject.class)) {
+
+            Rectangle rec = ((RectangleMapObject) object).getRectangle();
+            bodyDef.type = BodyDef.BodyType.StaticBody;
+            bodyDef.position.set((rec.getX() + rec.getWidth() / 2) / MyGdxGame.PPM, (rec.getY() + rec.getHeight() / 2) / MyGdxGame.PPM);
+
+            body = world.createBody(bodyDef);
+
+//            shape = new PolygonShape();
+//
+//            shape.setAsBox(rec.getWidth() / 2 / MyGdxGame.PPM, rec.getHeight() / 2 / MyGdxGame.PPM);
+//            fDef.shape = shape;
+//            fDef.friction = 1.0f;
+//            body.createFixture(fDef);
+//            shape.dispose();
+
+            Vector2 tl = new Vector2(-rec.getWidth() / MyGdxGame.PPM, rec.getHeight() / MyGdxGame.PPM);
+            Vector2 tr = new Vector2(rec.getWidth() / MyGdxGame.PPM, rec.getHeight() / MyGdxGame.PPM);
+            Vector2 bl = new Vector2(-rec.getWidth() / MyGdxGame.PPM, -rec.getHeight() / MyGdxGame.PPM);
+            Vector2 br = new Vector2(rec.getWidth() / MyGdxGame.PPM, -rec.getHeight() / MyGdxGame.PPM);
+
+            makeBoxSensors(body, tl, tr, bl, br, object.getName());
+
+        }
+    }
+
+    public void makeBoxSensors(Body body, Vector2 topl, Vector2 topr, Vector2 bottoml, Vector2 bottomr, String reggie) {
+        FixtureDef fdef = new FixtureDef();
+
+        EdgeShape bottom = new EdgeShape();
+        bottom.set(bottoml, bottomr);
+        fdef.shape = bottom;
+        fdef.isSensor = true;
+        body.createFixture(fdef).setUserData(reggie);
+
+        EdgeShape top = new EdgeShape();
+        top.set(topl, topr);
+        fdef.shape = top;
+        fdef.isSensor = true;
+        body.createFixture(fdef).setUserData(reggie);
+
+        EdgeShape left = new EdgeShape();
+        left.set(bottoml, topl);
+        fdef.shape = left;
+        fdef.isSensor = true;
+        body.createFixture(fdef).setUserData(reggie);
+
+        EdgeShape right = new EdgeShape();
+        right.set(bottomr, topr);
+        fdef.shape = right;
+        fdef.isSensor = true;
+        body.createFixture(fdef).setUserData(reggie);
     }
     @Override
     public void show() {
