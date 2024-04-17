@@ -9,11 +9,14 @@ import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.Stage;
+import com.badlogic.gdx.scenes.scene2d.ui.ImageButton;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
+import com.badlogic.gdx.scenes.scene2d.ui.Window;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
+import com.badlogic.gdx.scenes.scene2d.utils.Drawable;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 
 public class OverlayScreen extends ScreenAdapter {
@@ -21,41 +24,71 @@ public class OverlayScreen extends ScreenAdapter {
     private final MyGdxGame game;
     private Stage stage;
     public final Screen prevScreen;
-    private OrthographicCamera prevCamera;
 
 
     public OverlayScreen(MyGdxGame game, Screen pScreen) {
         this.game = game;
         this.prevScreen = pScreen;
-        if (prevScreen instanceof GameScreen) {
-            prevCamera = ((GameScreen) prevScreen).camera;
-        } else if (prevScreen instanceof MainMenuScreen) {
-            prevCamera = ((MainMenuScreen) prevScreen).camera;
-        }
     }
 
-    void construct(){
+    void renderPauseScreen(){
         this.stage = new Stage(new ScreenViewport());
         TextureAtlas atlas = new TextureAtlas(Gdx.files.internal("uiskin.atlas"));
         Skin skin = new Skin(Gdx.files.internal("uiskin.json"), atlas);
+        Window pausedWindow = new Window("- Paused -", skin);
+        pausedWindow.setSize(400, 150);
+        pausedWindow.setPosition((Gdx.graphics.getWidth() - pausedWindow.getWidth()) / 2,
+                (Gdx.graphics.getHeight() - pausedWindow.getHeight()) / 2);
 
-        Table table = new Table();
-        table.setFillParent(true);
+        TextButton closeButton = new TextButton("Resume", skin);
+        TextButton quitButton = new TextButton("Quit", skin);
 
-        // Create a text button for closing the options menu
-        TextButton closeButton = new TextButton("Close", skin);
-        TextButton quitButton = new TextButton("Quit Game", skin);
-        TextButton muteButton = new TextButton("Mute", skin);
-
-        // Add a listener to the close button
+        pausedWindow.add(pausedWindow.getTitleLabel()).pad(9);
+        pausedWindow.row();
+        pausedWindow.add(closeButton);
+        pausedWindow.add(quitButton);
         closeButton.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
-                // Remove the options menu from the stage
-                stage.clear();
+                pausedWindow.clear();
                 dispose();
-                game.setScreen(new MainMenuScreen(game));
+            }
+        });
 
+        quitButton.addListener(new ClickListener() {
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+                Gdx.app.exit();
+            }
+        });
+        stage.addActor(pausedWindow);
+        Gdx.input.setInputProcessor(stage);
+
+    }
+
+    void renderOptionsMenu() {
+        this.stage = new Stage(new ScreenViewport());
+        TextureAtlas atlas = new TextureAtlas(Gdx.files.internal("uiskin.atlas"));
+        Skin skin = new Skin(Gdx.files.internal("uiskin.json"), atlas);
+        Drawable musicOn = skin.getDrawable("music");
+        Drawable musicOff = skin.getDrawable("music-off");
+
+        // Create a Window widget for options menu
+        Window optionsWindow = new Window("- Options -", skin);
+        optionsWindow.setSize(300, 300);
+        optionsWindow.setPosition((Gdx.graphics.getWidth() - optionsWindow.getWidth()) / 2,
+                (Gdx.graphics.getHeight() - optionsWindow.getHeight()) / 2);
+
+        // Create buttons and add them to the options window
+        TextButton closeButton = new TextButton("Close", skin);
+        TextButton quitButton = new TextButton("Quit", skin);
+        ImageButton muteButton = new ImageButton(musicOn);
+
+        closeButton.addListener(new ClickListener() {
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+               optionsWindow.remove();
+                //dispose();
             }
         });
 
@@ -70,18 +103,18 @@ public class OverlayScreen extends ScreenAdapter {
             @Override
             public void clicked(InputEvent event, float x, float y) {
                 prevScreen.pause();
+                muteButton.getStyle().imageUp = musicOff;
             }
         });
 
-        // Add the close button to the table
-        table.add(closeButton).size(100, 50).pad(10);
-        table.add(quitButton).size(100, 50).pad(20);
-        table.add(muteButton).size(100, 50).pad(30);
+        optionsWindow.add(optionsWindow.getTitleLabel()).pad(15);
+        optionsWindow.row();
 
-        // Add the table to the stage
-        stage.addActor(table);
+        optionsWindow.add(closeButton).pad(15).row();
+        optionsWindow.add(quitButton).pad(15).row();
+        optionsWindow.add(muteButton).pad(15).row();
 
-        // Set input processor to stage to handle input events
+        stage.addActor(optionsWindow);
         Gdx.input.setInputProcessor(stage);
     }
 
@@ -89,23 +122,22 @@ public class OverlayScreen extends ScreenAdapter {
         this.stage = new Stage(new ScreenViewport());
         TextureAtlas atlas = new TextureAtlas(Gdx.files.internal("uiskin.atlas"));
         Skin skin = new Skin(Gdx.files.internal("uiskin.json"), atlas);
+        Window gameOverWindow = new Window("- Game over! -", skin);
+        gameOverWindow.setSize(500, 400);
+        gameOverWindow.setPosition((Gdx.graphics.getWidth() - gameOverWindow.getWidth()) / 2,
+                (Gdx.graphics.getHeight() - gameOverWindow.getHeight()) / 2);
 
-        Table table = new Table();
-        table.setFillParent(true);
-        Label gameOverLabel = new Label("GAME OVER", skin);
-        table.add(gameOverLabel).colspan(2).padBottom(20).row();
+
 
         // Create a text button for closing the options menu
         TextButton quitButton = new TextButton("Quit Game", skin);
         TextButton restart = new TextButton("Restart Level", skin);
-        table.add(restart).size(100, 50).pad(10);
-        table.add(quitButton).size(100, 50).pad(20);
+        gameOverWindow.add(restart).size(220, 50).pad(10);
+        gameOverWindow.add(quitButton).size(190, 50).pad(20);
+        gameOverWindow.add(gameOverWindow.getTitleLabel());
         quitButton.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
-                // Remove the options menu from the stage
-                stage.clear();
-                dispose();
                 Gdx.app.exit();
 
             }
@@ -120,7 +152,7 @@ public class OverlayScreen extends ScreenAdapter {
 
             }
         });
-        stage.addActor(table);
+        stage.addActor(gameOverWindow);
 
         // Set input processor to stage to handle input events
         Gdx.input.setInputProcessor(stage);
@@ -130,20 +162,6 @@ public class OverlayScreen extends ScreenAdapter {
     @Override
     public void render(float delta) {
         // Clear the screen
-        game.shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
-        game.shapeRenderer.setColor(0, 0, 0, 1);
-
-        // Draw black box
-        float boxWidth = 500;
-        float boxHeight = 200;
-        float boxX = (Gdx.graphics.getWidth() - boxWidth) / 2;
-        float boxY = (Gdx.graphics.getHeight() - boxHeight) / 2;
-        game.shapeRenderer.rect(boxX, boxY, boxWidth, boxHeight);
-
-        // End ShapeRenderer
-        game.shapeRenderer.end();
-
-        // Update and draw the stage
         stage.act(Math.min(Gdx.graphics.getDeltaTime(), 1 / 30f));
         stage.draw();
     }
@@ -156,5 +174,7 @@ public class OverlayScreen extends ScreenAdapter {
     @Override
     public void dispose() {
         stage.dispose();
+        this.prevScreen.show();
+
     }
 }

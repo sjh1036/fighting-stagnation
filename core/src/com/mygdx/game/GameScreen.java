@@ -60,7 +60,7 @@ public class GameScreen implements Screen {
     private Boolean isLeft = true;
     SpriteBatch batch;
     private final hud hud;
-    public OverlayScreen overlayScreen;
+    public OverlayScreen gameOverMenu;
 
     public GameScreen(final MyGdxGame game) {
         this.game = game;
@@ -92,7 +92,7 @@ public class GameScreen implements Screen {
         william = new William(world, gcl);
         hud = new hud(batch, this.game);
         Gdx.input.setInputProcessor(hud.stage);
-        overlayScreen = new OverlayScreen(this.game, this);
+        gameOverMenu = new OverlayScreen(this.game, this);
     }
 
     @Override
@@ -129,8 +129,8 @@ public class GameScreen implements Screen {
         float mapHeight = map.getProperties().get("height", Integer.class) * map.getProperties().get("tileheight", Integer.class);
 
         if (spriteY - spriteHalfHeight < 0 || spriteY + spriteHalfHeight > mapHeight) {
-            overlayScreen.gameOver();
-            game.setScreen(overlayScreen);
+            gameOverMenu.gameOver();
+            game.setScreen(gameOverMenu);
         }
 
         renderer.setView(camera);
@@ -149,13 +149,13 @@ public class GameScreen implements Screen {
     //Input for movement
     private void handleInput() {
 
-        if ((Gdx.input.isKeyPressed(Input.Keys.LEFT) || Gdx.input.isKeyPressed(Input.Keys.A)) && william.body.getLinearVelocity().x >= -10) {
-            william.body.applyLinearImpulse(new Vector2(-0.4f, 0), william.body.getWorldCenter(), true);
+        if ((Gdx.input.isKeyPressed(Input.Keys.LEFT) || Gdx.input.isKeyPressed(Input.Keys.A)) && william.body.getLinearVelocity().x >= -7.5) {
+            william.body.applyLinearImpulse(new Vector2(-0.25f, 0), william.body.getWorldCenter(), true);
             william.isLeft = true;
         }
 
-        if ((Gdx.input.isKeyPressed(Input.Keys.RIGHT) || Gdx.input.isKeyPressed(Input.Keys.D)) && william.body.getLinearVelocity().x <= 10) {
-            william.body.applyLinearImpulse(new Vector2(0.4f, 0), william.body.getWorldCenter(), true);
+        if ((Gdx.input.isKeyPressed(Input.Keys.RIGHT) || Gdx.input.isKeyPressed(Input.Keys.D)) && william.body.getLinearVelocity().x <= 7.5) {
+            william.body.applyLinearImpulse(new Vector2(0.25f, 0), william.body.getWorldCenter(), true);
             william.isLeft = false;
         }
         if (!gcl.inAir && (Gdx.input.isKeyPressed(Input.Keys.UP) || Gdx.input.isKeyPressed(Input.Keys.W) || Gdx.input.isKeyPressed(Input.Keys.SPACE))) {

@@ -38,9 +38,6 @@ public class MyGdxGame extends Game {
 		setScreen(new MainMenuScreen(this));
 	}
 
-//	public void overlayScreenPopup() {
-//		setScreen(new OverlayScreen(this, this.screen));
-//	}
 
 	@Override
 	public void dispose() {
