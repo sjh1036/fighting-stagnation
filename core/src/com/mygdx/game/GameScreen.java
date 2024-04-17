@@ -14,6 +14,7 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.maps.MapObject;
 import com.badlogic.gdx.maps.objects.PolygonMapObject;
+import com.badlogic.gdx.maps.objects.PolylineMapObject;
 import com.badlogic.gdx.maps.objects.RectangleMapObject;
 import com.badlogic.gdx.maps.tiled.TiledMap;
 import com.badlogic.gdx.maps.tiled.TmxMapLoader;
@@ -26,12 +27,14 @@ import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.box2d.BodyDef;
 import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.physics.box2d.Box2DDebugRenderer;
+import com.badlogic.gdx.physics.box2d.ChainShape;
 import com.badlogic.gdx.physics.box2d.Contact;
 import com.badlogic.gdx.physics.box2d.ContactImpulse;
 import com.badlogic.gdx.physics.box2d.ContactListener;
 import com.badlogic.gdx.physics.box2d.FixtureDef;
 import com.badlogic.gdx.physics.box2d.Manifold;
 import com.badlogic.gdx.physics.box2d.PolygonShape;
+import com.badlogic.gdx.physics.box2d.Shape;
 import com.badlogic.gdx.physics.box2d.World;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.ScreenUtils;
@@ -76,42 +79,17 @@ public class GameScreen implements Screen {
 
         //gravity, sleep objs at rest
         camera.position.set(gamePort.getWorldWidth() / 2, gamePort.getWorldHeight() / 2, 0);
-        world = new World(new Vector2(0, -20), true);
+        world = new World(new Vector2(0, -25), true);
         debugRenderer = new Box2DDebugRenderer();
 
-        BodyDef bodyDef = new BodyDef();
-        PolygonShape shape = new PolygonShape();
-        FixtureDef fDef = new FixtureDef();
-        Body body;
 
         //creating objects for each map object
-        for(MapObject object : map.getLayers().get(5).getObjects().getByType(MapObject.class)) {
-            if (object instanceof PolygonMapObject) {
-//                Polygon poly = ((PolygonMapObject) object).getPolygon();
-//                bodyDef.type = BodyDef.BodyType.StaticBody;
-//                bodyDef.position.set((poly.getX() + poly.getBoundingRectangle().getWidth()/ 2 ) / MyGdxGame.PPM, (poly.getY() + poly.getBoundingRectangle().getHeight() / 2) / MyGdxGame.PPM);
-//
-//                body = world.createBody(bodyDef);
-//
-//                shape.set(poly.getVertices());
-//                fDef.shape = shape;
-//                body.createFixture(fDef);
-            } else if (object instanceof RectangleMapObject) {
-                Rectangle rec = ((RectangleMapObject) object).getRectangle();
-                bodyDef.type = BodyDef.BodyType.StaticBody;
-                bodyDef.position.set((rec.getX() + rec.getWidth() / 2) / MyGdxGame.PPM, (rec.getY() + rec.getHeight() / 2) / MyGdxGame.PPM);
 
-                body = world.createBody(bodyDef);
+        buildMapObjects();
 
-                shape.setAsBox(rec.getWidth() / 2 / MyGdxGame.PPM, rec.getHeight() / 2 / MyGdxGame.PPM);
-                fDef.shape = shape;
-                fDef.friction = .75f;
-                body.createFixture(fDef);
-            }
-        }
         gcl = new GameContactListener();
         world.setContactListener(gcl);
-        william = new William(world);
+        william = new William(world, gcl);
         hud = new hud(batch, this.game);
         Gdx.input.setInputProcessor(hud.stage);
         overlayScreen = new OverlayScreen(this.game, this);
@@ -153,12 +131,7 @@ public class GameScreen implements Screen {
         if (spriteY - spriteHalfHeight < 0 || spriteY + spriteHalfHeight > mapHeight) {
             overlayScreen.gameOver();
             game.setScreen(overlayScreen);
-        } else {
-
         }
-        camera.position.x = william.body.getPosition().x;
-        camera.position.y = william.body.getPosition().y;
-
 
         renderer.setView(camera);
         renderer.render();
@@ -175,30 +148,91 @@ public class GameScreen implements Screen {
 
     //Input for movement
     private void handleInput() {
+
         if ((Gdx.input.isKeyPressed(Input.Keys.LEFT) || Gdx.input.isKeyPressed(Input.Keys.A)) && william.body.getLinearVelocity().x >= -10) {
             william.body.applyLinearImpulse(new Vector2(-0.4f, 0), william.body.getWorldCenter(), true);
             william.isLeft = true;
         }
+
         if ((Gdx.input.isKeyPressed(Input.Keys.RIGHT) || Gdx.input.isKeyPressed(Input.Keys.D)) && william.body.getLinearVelocity().x <= 10) {
             william.body.applyLinearImpulse(new Vector2(0.4f, 0), william.body.getWorldCenter(), true);
             william.isLeft = false;
         }
-        if (!gcl.inAir && (Gdx.input.isKeyPressed(Input.Keys.UP) || Gdx.input.isKeyPressed(Input.Keys.W))) {
-            william.body.applyLinearImpulse(new Vector2(0, 10f), william.body.getWorldCenter(), true);
+        if (!gcl.inAir && (Gdx.input.isKeyPressed(Input.Keys.UP) || Gdx.input.isKeyPressed(Input.Keys.W) || Gdx.input.isKeyPressed(Input.Keys.SPACE))) {
+            william.body.applyLinearImpulse(new Vector2(0, 13f), william.body.getWorldCenter(), true);
             gcl.inAir = true;
         }
+        if (gcl.inAir && gcl.rightTouching && (Gdx.input.isKeyJustPressed(Input.Keys.UP) || Gdx.input.isKeyJustPressed(Input.Keys.W) || Gdx.input.isKeyJustPressed(Input.Keys.SPACE))) {
+            william.body.applyLinearImpulse(new Vector2(-3f, 5f), william.body.getWorldCenter(), true);
+        }
 
+        if (gcl.inAir && gcl.leftTouching && (Gdx.input.isKeyJustPressed(Input.Keys.UP) || Gdx.input.isKeyJustPressed(Input.Keys.W) || Gdx.input.isKeyJustPressed(Input.Keys.SPACE))) {
+            william.body.applyLinearImpulse(new Vector2(3f, 5f), william.body.getWorldCenter(), true);
+        }
 
+        //extra inputs
+        //respawn = 0
         if (Gdx.input.isKeyJustPressed(Input.Keys.NUM_0)) {
             william.defineWilliam();
         }
+        //anti grav on william
         if (Gdx.input.isKeyJustPressed(Input.Keys.SHIFT_LEFT)) {
             world.setGravity(new Vector2(0, 20));
         }
+        //grav on william
         if (Gdx.input.isKeyJustPressed(Input.Keys.CONTROL_LEFT)) {
             world.setGravity(new Vector2(0, -20));
         }
 
+    }
+
+    private void buildMapObjects() {
+        BodyDef bodyDef = new BodyDef();
+        PolygonShape shape;
+        FixtureDef fDef = new FixtureDef();
+        Body body;
+
+        for(MapObject object: map.getLayers().get(5).getObjects().getByType(MapObject.class)) {
+            if (object instanceof PolygonMapObject) {
+                Polygon poly = ((PolygonMapObject) object).getPolygon();
+                bodyDef.type = BodyDef.BodyType.StaticBody;
+
+                bodyDef.position.set((poly.getOriginX() ) / MyGdxGame.PPM, (poly.getOriginY()) / MyGdxGame.PPM);
+
+                body = world.createBody(bodyDef);
+
+                shape = new PolygonShape();
+
+                float[] vertices = poly.getTransformedVertices();
+                Vector2[] worldVertices = new Vector2[vertices.length / 2];
+
+                for(int i = 0; i < worldVertices.length; i++) {
+                    worldVertices[i] = new Vector2(vertices[i*2] / MyGdxGame.PPM, vertices[i*2 +1] / MyGdxGame.PPM);
+                }
+
+                shape.set(worldVertices);
+                fDef.shape = shape;
+                fDef.friction = 1.0f;
+
+                body.createFixture(fDef);
+                shape.dispose();
+
+            } else if (object instanceof RectangleMapObject) {
+                Rectangle rec = ((RectangleMapObject) object).getRectangle();
+                bodyDef.type = BodyDef.BodyType.StaticBody;
+                bodyDef.position.set((rec.getX() + rec.getWidth() / 2) / MyGdxGame.PPM, (rec.getY() + rec.getHeight() / 2) / MyGdxGame.PPM);
+
+                body = world.createBody(bodyDef);
+
+                shape = new PolygonShape();
+
+                shape.setAsBox(rec.getWidth() / 2 / MyGdxGame.PPM, rec.getHeight() / 2 / MyGdxGame.PPM);
+                fDef.shape = shape;
+                fDef.friction = 1.0f;
+                body.createFixture(fDef);
+                shape.dispose();
+            }
+        }
     }
     @Override
     public void show() {
