@@ -1,22 +1,16 @@
 
 package com.mygdx.game;
 
-import java.nio.charset.StandardCharsets;
-import java.util.Iterator;
 
 import com.badlogic.gdx.Gdx;
 
-import com.badlogic.gdx.InputProcessor;
+
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.audio.Music;
 import com.badlogic.gdx.graphics.OrthographicCamera;
-import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.maps.MapObject;
 import com.badlogic.gdx.maps.objects.PolygonMapObject;
-import com.badlogic.gdx.maps.objects.PolylineMapObject;
 import com.badlogic.gdx.maps.objects.RectangleMapObject;
 import com.badlogic.gdx.maps.tiled.TiledMap;
 import com.badlogic.gdx.maps.tiled.TmxMapLoader;
@@ -25,46 +19,31 @@ import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Polygon;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
-import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.box2d.BodyDef;
 import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.physics.box2d.Box2DDebugRenderer;
-import com.badlogic.gdx.physics.box2d.ChainShape;
-import com.badlogic.gdx.physics.box2d.Contact;
-import com.badlogic.gdx.physics.box2d.ContactImpulse;
-import com.badlogic.gdx.physics.box2d.ContactListener;
-import com.badlogic.gdx.physics.box2d.EdgeShape;
 import com.badlogic.gdx.physics.box2d.FixtureDef;
-import com.badlogic.gdx.physics.box2d.Manifold;
 import com.badlogic.gdx.physics.box2d.PolygonShape;
-import com.badlogic.gdx.physics.box2d.Shape;
 import com.badlogic.gdx.physics.box2d.World;
-import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.ScreenUtils;
-import com.badlogic.gdx.utils.TimeUtils;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.utils.viewport.FitViewport;
-import com.badlogic.gdx.utils.viewport.StretchViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
 public class GameScreen implements Screen {
     final MyGdxGame game;
     OrthographicCamera camera;
-    private Viewport gamePort;
-    private TmxMapLoader mapLoader;
-    private TiledMap map;
-    private OrthogonalTiledMapRenderer renderer;
+    private final Viewport gamePort;
+    private final TiledMap map;
+    private final OrthogonalTiledMapRenderer renderer;
     public World world;
-    private Box2DDebugRenderer debugRenderer;
-    private William william;
-    private Vector3 clickCoordinates;
-    private GameContactListener gcl;
-    private Boolean isLeft = true;
+    private final Box2DDebugRenderer debugRenderer;
+    private final William william;
+    private final GameContactListener gcl;
     SpriteBatch batch;
     private final hud hud;
-    private Music music;
     public OverlayScreen overlayScreen;
-
+    private final Hedgehog heg;
     public GameScreen(final MyGdxGame game) {
         this.game = game;
 
@@ -74,16 +53,13 @@ public class GameScreen implements Screen {
         camera.setToOrtho(false, 1000, 500);
         gamePort = new FitViewport(950 / MyGdxGame.PPM, 570 / MyGdxGame.PPM, camera);
 
-        TmxMapLoader mapLoader = new TmxMapLoader();
-        map = mapLoader.load("Map1.tmx");
+        map = new TmxMapLoader().load("Map1.tmx");
         renderer = new OrthogonalTiledMapRenderer(map, 1 / MyGdxGame.PPM);
 
-        music = Gdx.audio.newMusic(Gdx.files.internal("MMMusic.mp3"));
+        Music music = Gdx.audio.newMusic(Gdx.files.internal("MMMusic.mp3"));
         music.setVolume(.1f);
         music.setLooping(true);
         music.play();
-
-        clickCoordinates = new Vector3();
 
         //gravity, sleep objs at rest
         camera.position.set(gamePort.getWorldWidth() / 2, gamePort.getWorldHeight() / 2, 0);
@@ -100,12 +76,15 @@ public class GameScreen implements Screen {
         hud = new hud(batch, this.game);
         Gdx.input.setInputProcessor(hud.stage);
         overlayScreen = new OverlayScreen(this.game, this);
+        heg = new Hedgehog(this);
     }
 
     @Override
     public void render(float delta) {
         handleInput();
+
         william.update(delta);
+        heg.update(delta);
         renderGame(delta);
         hud.stage.act(delta);
         hud.stage.draw();
@@ -115,9 +94,8 @@ public class GameScreen implements Screen {
     private void renderGame(float delta) {
         handleInput();
         ScreenUtils.clear(.5f, .8f, .8f, 1);
-
         debugRenderer.render(world, camera.combined);
-        world.step(1/60f, 6, 2);
+
     //Set camera
         camera.position.set(william.getX() + william.getWidth() / 2,
                 william.getY() + william.getHeight() / 2,
@@ -149,8 +127,11 @@ public class GameScreen implements Screen {
         batch.setProjectionMatrix(camera.combined);
         batch.begin();
         william.draw(batch);
+        heg.draw(batch);
         batch.end();
 
+
+        world.step(1/60f, 6, 2);
     }
 
     //Input for movement
@@ -166,14 +147,11 @@ public class GameScreen implements Screen {
             william.isLeft = false;
         }
         if (!gcl.inAir && (Gdx.input.isKeyPressed(Input.Keys.UP) || Gdx.input.isKeyPressed(Input.Keys.W) || Gdx.input.isKeyPressed(Input.Keys.SPACE))) {
-            william.body.applyLinearImpulse(new Vector2(0, 13f), william.body.getWorldCenter(), true);
+            william.body.applyLinearImpulse(new Vector2(0, 12f), william.body.getWorldCenter(), true);
             gcl.inAir = true;
-        }
-        if (gcl.inAir && gcl.rightTouching && (Gdx.input.isKeyJustPressed(Input.Keys.UP) || Gdx.input.isKeyJustPressed(Input.Keys.W) || Gdx.input.isKeyJustPressed(Input.Keys.SPACE))) {
+        } else if (gcl.inAir && gcl.rightTouching && (Gdx.input.isKeyJustPressed(Input.Keys.UP) || Gdx.input.isKeyJustPressed(Input.Keys.W) || Gdx.input.isKeyJustPressed(Input.Keys.SPACE))) {
             william.body.applyLinearImpulse(new Vector2(-3f, 5f), william.body.getWorldCenter(), true);
-        }
-
-        if (gcl.inAir && gcl.leftTouching && (Gdx.input.isKeyJustPressed(Input.Keys.UP) || Gdx.input.isKeyJustPressed(Input.Keys.W) || Gdx.input.isKeyJustPressed(Input.Keys.SPACE))) {
+        } else if (gcl.inAir && gcl.leftTouching && (Gdx.input.isKeyJustPressed(Input.Keys.UP) || Gdx.input.isKeyJustPressed(Input.Keys.W) || Gdx.input.isKeyJustPressed(Input.Keys.SPACE))) {
             william.body.applyLinearImpulse(new Vector2(3f, 5f), william.body.getWorldCenter(), true);
         }
 
@@ -248,51 +226,16 @@ public class GameScreen implements Screen {
 
             body = world.createBody(bodyDef);
 
-//            shape = new PolygonShape();
-//
-//            shape.setAsBox(rec.getWidth() / 2 / MyGdxGame.PPM, rec.getHeight() / 2 / MyGdxGame.PPM);
-//            fDef.shape = shape;
-//            fDef.friction = 1.0f;
-//            body.createFixture(fDef);
-//            shape.dispose();
+            shape = new PolygonShape();
+            shape.setAsBox(rec.getWidth() / 2 / MyGdxGame.PPM, rec.getHeight() / 2 / MyGdxGame.PPM);
+            fDef.shape = shape;
+            fDef.isSensor = true;
+            body.createFixture(fDef).setUserData(object.getName());
 
-            Vector2 tl = new Vector2(-rec.getWidth() / MyGdxGame.PPM, rec.getHeight() / MyGdxGame.PPM);
-            Vector2 tr = new Vector2(rec.getWidth() / MyGdxGame.PPM, rec.getHeight() / MyGdxGame.PPM);
-            Vector2 bl = new Vector2(-rec.getWidth() / MyGdxGame.PPM, -rec.getHeight() / MyGdxGame.PPM);
-            Vector2 br = new Vector2(rec.getWidth() / MyGdxGame.PPM, -rec.getHeight() / MyGdxGame.PPM);
-
-            makeBoxSensors(body, tl, tr, bl, br, object.getName());
-
+            shape.dispose();
         }
     }
 
-    public void makeBoxSensors(Body body, Vector2 topl, Vector2 topr, Vector2 bottoml, Vector2 bottomr, String reggie) {
-        FixtureDef fdef = new FixtureDef();
-
-        EdgeShape bottom = new EdgeShape();
-        bottom.set(bottoml, bottomr);
-        fdef.shape = bottom;
-        fdef.isSensor = true;
-        body.createFixture(fdef).setUserData(reggie);
-
-        EdgeShape top = new EdgeShape();
-        top.set(topl, topr);
-        fdef.shape = top;
-        fdef.isSensor = true;
-        body.createFixture(fdef).setUserData(reggie);
-
-        EdgeShape left = new EdgeShape();
-        left.set(bottoml, topl);
-        fdef.shape = left;
-        fdef.isSensor = true;
-        body.createFixture(fdef).setUserData(reggie);
-
-        EdgeShape right = new EdgeShape();
-        right.set(bottomr, topr);
-        fdef.shape = right;
-        fdef.isSensor = true;
-        body.createFixture(fdef).setUserData(reggie);
-    }
     @Override
     public void show() {
 
