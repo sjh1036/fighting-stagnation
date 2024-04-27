@@ -5,26 +5,17 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="ee889198-8c29-4d6c-a5fe-f272ae9678ff" name="Changes" comment="added jumping animation, changed walking framerate, added Enemy and Hedgehog classes">
-      <change afterPath="$PROJECT_DIR$/assets/jumping.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/core/src/com/mygdx/game/Enemy.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.gradle/8.5/executionHistory/executionHistory.bin" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/8.5/executionHistory/executionHistory.bin" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.gradle/8.5/executionHistory/executionHistory.lock" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/8.5/executionHistory/executionHistory.lock" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.gradle/8.5/fileHashes/fileHashes.bin" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/8.5/fileHashes/fileHashes.bin" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.gradle/8.5/fileHashes/fileHashes.lock" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/8.5/fileHashes/fileHashes.lock" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.gradle/8.5/fileHashes/resourceHashesCache.bin" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/8.5/fileHashes/resourceHashesCache.bin" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.gradle/buildOutputCleanup/buildOutputCleanup.lock" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/buildOutputCleanup/buildOutputCleanup.lock" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.gradle/file-system.probe" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/file-system.probe" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/gradle.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/gradle.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/assets/Map1.tmx" beforeDir="false" afterPath="$PROJECT_DIR$/assets/Map1.tmx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/core/build/classes/java/main/com/mygdx/game/GameScreen.class" beforeDir="false" afterPath="$PROJECT_DIR$/core/build/classes/java/main/com/mygdx/game/GameScreen.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/build/classes/java/main/com/mygdx/game/MainMenuScreen.class" beforeDir="false" afterPath="$PROJECT_DIR$/core/build/classes/java/main/com/mygdx/game/MainMenuScreen.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/build/libs/core-1.0.jar" beforeDir="false" afterPath="$PROJECT_DIR$/core/build/libs/core-1.0.jar" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/core/build/tmp/compileJava/previous-compilation-data.bin" beforeDir="false" afterPath="$PROJECT_DIR$/core/build/tmp/compileJava/previous-compilation-data.bin" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/src/com/mygdx/game/GameScreen.java" beforeDir="false" afterPath="$PROJECT_DIR$/core/src/com/mygdx/game/GameScreen.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/src/com/mygdx/game/Hedgehog.java" beforeDir="false" afterPath="$PROJECT_DIR$/core/src/com/mygdx/game/Hedgehog.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/src/com/mygdx/game/MainMenuScreen.java" beforeDir="false" afterPath="$PROJECT_DIR$/core/src/com/mygdx/game/MainMenuScreen.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/src/com/mygdx/game/William.java" beforeDir="false" afterPath="$PROJECT_DIR$/core/src/com/mygdx/game/William.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/desktop/build/resources/main/Map1.tmx" beforeDir="false" afterPath="$PROJECT_DIR$/desktop/build/resources/main/Map1.tmx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/local.properties" beforeDir="false" afterPath="$PROJECT_DIR$/local.properties" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -42,6 +33,9 @@
   <component name="ExternalProjectsManager">
     <system id="GRADLE">
       <state>
+        <task path="$PROJECT_DIR$/desktop">
+          <activation />
+        </task>
         <projects_view>
           <tree_state>
             <expand />
@@ -110,7 +104,7 @@
   </component>
   <component name="RunManager">
     <configuration name="Game" type="Application" factoryName="Application">
-      <option name="ALTERNATIVE_JRE_PATH" value="$USER_HOME$/.jdks/corretto-17.0.10" />
+      <option name="ALTERNATIVE_JRE_PATH" value="jbr-17" />
       <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="true" />
       <option name="MAIN_CLASS_NAME" value="com.mygdx.game.DesktopLauncher" />
       <module name="fighting-stag-nation.desktop.main" />
