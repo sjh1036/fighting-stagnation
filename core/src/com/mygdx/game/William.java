@@ -25,6 +25,7 @@ public class William extends Sprite {
     private final Animation<TextureRegion> willRun;
     private final Animation<TextureRegion> willJump;
     private final Animation<TextureRegion> willBuck;
+    private final Animation<TextureRegion> willFall;
     private float stateTimer;
     private final Texture willStand = new Texture(Gdx.files.internal("WillisStill.png"));
     private final GameContactListener gcl;
@@ -71,12 +72,17 @@ public class William extends Sprite {
         }
         willBuck = new Animation<>(.05f, frames);
 
+        frames.clear();
+        for (int i = 3; i < 5; i++) {
+            frames.add(new TextureRegion(jumpAni, i * 480, 480, 480, 480));
+        }
+        willFall = new Animation<>(.1f, frames);
         drawWilliam();
         defineWilliam();
     }
     public void update(float delta) {
         setCenter(body.getPosition().x, body.getPosition().y);
-       //willRun.setFrameDuration(.25f - Math.abs(body.getLinearVelocity().x / 50));
+        willRun.setFrameDuration(.23f - Math.abs(body.getLinearVelocity().x / 50));
         setRegion(getFrame(delta));
     }
     public TextureRegion getFrame(float delta) {
@@ -104,6 +110,9 @@ public class William extends Sprite {
                     gcl.attacking = false;
                 }
                 break;
+            case FALLING:
+                region = willFall.getKeyFrame(stateTimer);
+                break;
             default:
                 region = new TextureRegion(willStand); // Default to stand texture
                 break;
@@ -128,7 +137,6 @@ public class William extends Sprite {
             }
             body.setLinearVelocity(0, body.getLinearVelocity().y);
             return State.STANDING;
-
         }
         if (body.getLinearVelocity().y > 0 || (body.getLinearVelocity().y < 0 && previousState == State.JUMPING)) {
             return State.JUMPING;
@@ -136,7 +144,10 @@ public class William extends Sprite {
         if (body.getLinearVelocity().y < 0) {
             return State.FALLING;
         }
+
         return State.STANDING;
+
+
     }
     public void drawWilliam() {
         this.setSize(125 / MyGdxGame.PPM,125 / MyGdxGame.PPM);
