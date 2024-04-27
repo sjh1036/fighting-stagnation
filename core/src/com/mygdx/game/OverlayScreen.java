@@ -3,81 +3,45 @@ package com.mygdx.game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.ScreenAdapter;
-import com.badlogic.gdx.graphics.GL20;
-import com.badlogic.gdx.graphics.OrthographicCamera;
+import com.badlogic.gdx.audio.Music;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
-import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.ImageButton;
-import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
-import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.ui.Window;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.scenes.scene2d.utils.Drawable;
-import com.badlogic.gdx.utils.viewport.ScreenViewport;
+import com.badlogic.gdx.utils.viewport.Viewport;
 
 public class OverlayScreen extends ScreenAdapter {
 
     private final MyGdxGame game;
-    private Stage stage;
-    public final Screen prevScreen;
+    private final Stage stage;
+    public int type;
+    Window optionsMenu;
+    Window pauseMenu;
+    Window gameOverMenu;
+    Skin skin;
+    Music music;
 
 
-    public OverlayScreen(MyGdxGame game, Screen pScreen) {
+    public OverlayScreen(MyGdxGame game, int type, Stage stage) {
         this.game = game;
-        this.prevScreen = pScreen;
+        this.type = type;
+        this.stage = stage;
+        TextureAtlas atlas = new TextureAtlas(Gdx.files.internal("uiskin.atlas"));
+        this.skin =  new Skin(Gdx.files.internal("uiskin.json"), atlas);
     }
 
-    void renderPauseScreen(){
-        this.stage = new Stage(new ScreenViewport());
-        TextureAtlas atlas = new TextureAtlas(Gdx.files.internal("uiskin.atlas"));
-        Skin skin = new Skin(Gdx.files.internal("uiskin.json"), atlas);
-        Window pausedWindow = new Window("- Paused -", skin);
-        pausedWindow.setSize(400, 150);
-        pausedWindow.setPosition((Gdx.graphics.getWidth() - pausedWindow.getWidth()) / 2,
-                (Gdx.graphics.getHeight() - pausedWindow.getHeight()) / 2);
-
-        TextButton closeButton = new TextButton("Resume", skin);
-        TextButton quitButton = new TextButton("Quit", skin);
-
-        pausedWindow.add(pausedWindow.getTitleLabel()).pad(9);
-        pausedWindow.row();
-        pausedWindow.add(closeButton);
-        pausedWindow.add(quitButton);
-        closeButton.addListener(new ClickListener() {
-            @Override
-            public void clicked(InputEvent event, float x, float y) {
-                pausedWindow.clear();
-                dispose();
-            }
-        });
-
-        quitButton.addListener(new ClickListener() {
-            @Override
-            public void clicked(InputEvent event, float x, float y) {
-                Gdx.app.exit();
-            }
-        });
-        stage.addActor(pausedWindow);
-        Gdx.input.setInputProcessor(stage);
-
-    }
-
-    void renderOptionsMenu() {
-        this.stage = new Stage(new ScreenViewport());
-        TextureAtlas atlas = new TextureAtlas(Gdx.files.internal("uiskin.atlas"));
-        Skin skin = new Skin(Gdx.files.internal("uiskin.json"), atlas);
+    public void renderOptionsMenu(Music music){
+        optionsMenu = new Window("- Options -", skin);
         Drawable musicOn = skin.getDrawable("music");
         Drawable musicOff = skin.getDrawable("music-off");
-
-        // Create a Window widget for options menu
-        Window optionsWindow = new Window("- Options -", skin);
-        optionsWindow.setSize(300, 300);
-        optionsWindow.setPosition((Gdx.graphics.getWidth() - optionsWindow.getWidth()) / 2,
-                (Gdx.graphics.getHeight() - optionsWindow.getHeight()) / 2);
+        this.music = music;
+        optionsMenu.setSize(300, 300);
 
         // Create buttons and add them to the options window
         TextButton closeButton = new TextButton("Close", skin);
@@ -87,8 +51,7 @@ public class OverlayScreen extends ScreenAdapter {
         closeButton.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
-               optionsWindow.remove();
-                //dispose();
+                optionsMenu.setVisible(false);
             }
         });
 
@@ -102,61 +65,82 @@ public class OverlayScreen extends ScreenAdapter {
         muteButton.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
-                prevScreen.pause();
-                muteButton.getStyle().imageUp = musicOff;
+                toggleMusic(muteButton);
             }
         });
 
-        optionsWindow.add(optionsWindow.getTitleLabel()).pad(15);
-        optionsWindow.row();
 
-        optionsWindow.add(closeButton).pad(15).row();
-        optionsWindow.add(quitButton).pad(15).row();
-        optionsWindow.add(muteButton).pad(15).row();
+        optionsMenu.add("- Options -").pad(15).row();
 
-        stage.addActor(optionsWindow);
+        optionsMenu.add(closeButton).pad(15).row();
+        optionsMenu.add(quitButton).pad(15).row();
+        optionsMenu.add(muteButton).pad(15).row();
+        
+        if(type == 1) {
+            optionsMenu.setScale(0.5f);
+            optionsMenu.setPosition(200, 120);
+            stage.addActor(optionsMenu);
+
+        } else {
+            optionsMenu.setPosition((Gdx.graphics.getWidth() - optionsMenu.getWidth()) / 2,
+                    (Gdx.graphics.getHeight() - optionsMenu.getHeight()) / 2);
+            stage.addActor(optionsMenu);
+        }
+
+
+
         Gdx.input.setInputProcessor(stage);
+
     }
 
-    void gameOver(){
-        this.stage = new Stage(new ScreenViewport());
-        TextureAtlas atlas = new TextureAtlas(Gdx.files.internal("uiskin.atlas"));
-        Skin skin = new Skin(Gdx.files.internal("uiskin.json"), atlas);
-        Window gameOverWindow = new Window("- Game over! -", skin);
-        gameOverWindow.setSize(500, 400);
-        gameOverWindow.setPosition((Gdx.graphics.getWidth() - gameOverWindow.getWidth()) / 2,
-                (Gdx.graphics.getHeight() - gameOverWindow.getHeight()) / 2);
+    public void renderPauseMenu(){
+        pauseMenu = new Window("- Pause -", skin);
+        TextButton resumeButton = new TextButton("Resume", skin);
+        TextButton quitButton = new TextButton("Quit", skin);
 
+        float buttonX = (pauseMenu.getWidth() - resumeButton.getWidth() - quitButton.getWidth() - 20) / 2;
+        resumeButton.setPosition(buttonX, 30);
+        quitButton.setPosition(buttonX + resumeButton.getWidth() + 20, 30);
 
+        // Add listeners to the buttons
+        resumeButton.addListener(new ClickListener() {
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+                pauseMenu.setVisible(false);
+            }
+        });
 
-        // Create a text button for closing the options menu
-        TextButton quitButton = new TextButton("Quit Game", skin);
-        TextButton restart = new TextButton("Restart Level", skin);
-        gameOverWindow.add(restart).size(220, 50).pad(10);
-        gameOverWindow.add(quitButton).size(190, 50).pad(20);
-        gameOverWindow.add(gameOverWindow.getTitleLabel());
         quitButton.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
                 Gdx.app.exit();
-
             }
         });
-        restart.addListener(new ClickListener() {
-            @Override
-            public void clicked(InputEvent event, float x, float y) {
-                // Remove the options menu from the stage
-                stage.clear();
-                dispose();
-                game.setScreen(new GameScreen(new MyGdxGame()));
 
-            }
-        });
-        stage.addActor(gameOverWindow);
+        // Add the title and buttons to the pause window
+
+
+        pauseMenu.setSize(350, 150);
+        pauseMenu.add(pauseMenu.getTitleLabel()).colspan(3).row();
+        pauseMenu.add(resumeButton).padRight(10);
+        pauseMenu.add(quitButton);
+        pauseMenu.setScale(0.7f);
+
+        // Calculate the position to center the window on the screen
+        float windowX = (Gdx.graphics.getWidth() - (pauseMenu.getWidth() * 0.7f) / 2);
+        float windowY = (Gdx.graphics.getHeight() - (pauseMenu.getHeight() * 0.7f) / 2);
+        Gdx.app.log("X, Y", "(" + windowX + ", " + windowY + ")");
+
+
+        // Set the position of the pause window
+        pauseMenu.setPosition(windowX, windowY);
+
+
+        // Add the pause window to the stage
+        stage.addActor(pauseMenu);
 
         // Set input processor to stage to handle input events
         Gdx.input.setInputProcessor(stage);
-
     }
 
     @Override
@@ -166,6 +150,20 @@ public class OverlayScreen extends ScreenAdapter {
         stage.draw();
     }
 
+    public void toggleMusic(ImageButton button) {
+        Drawable musicOnDrawable = skin.getDrawable("music");
+        Drawable musicOffDrawable = skin.getDrawable("music-off");
+
+        if(music.isPlaying()){
+            music.pause();
+            button.getStyle().up = musicOffDrawable;
+        } else{
+            music.play();
+            button.getStyle().down = musicOnDrawable;
+
+        }
+    }
+
     @Override
     public void resize(int width, int height) {
         stage.getViewport().update(width, height, true);
@@ -173,8 +171,8 @@ public class OverlayScreen extends ScreenAdapter {
 
     @Override
     public void dispose() {
+        stage.clear();
         stage.dispose();
-        this.prevScreen.show();
 
     }
 }

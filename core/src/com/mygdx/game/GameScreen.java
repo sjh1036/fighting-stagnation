@@ -27,6 +27,7 @@ import com.badlogic.gdx.physics.box2d.Box2DDebugRenderer;
 import com.badlogic.gdx.physics.box2d.FixtureDef;
 import com.badlogic.gdx.physics.box2d.PolygonShape;
 import com.badlogic.gdx.physics.box2d.World;
+import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.utils.ScreenUtils;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.utils.viewport.FitViewport;
@@ -38,15 +39,16 @@ public class GameScreen implements Screen {
     private final Viewport gamePort;
     private final TiledMap map;
     private final OrthogonalTiledMapRenderer renderer;
+    boolean isOver;
     public World world;
     private final Box2DDebugRenderer debugRenderer;
     private final William william;
     private final GameContactListener gcl;
     SpriteBatch batch;
     private final hud hud;
-    private Music music;
-    public OverlayScreen overlayScreen;
-    public OverlayScreen gameOverMenu;
+    private final Music music;
+    public GameOverScreen gameOverMenu;
+    Stage stage;
 
     private final Hedgehog heg;
     public GameScreen(final MyGdxGame game) {
@@ -54,17 +56,21 @@ public class GameScreen implements Screen {
 
     //Set camera and load map
         batch = new SpriteBatch();
+
         camera = new OrthographicCamera();
         camera.setToOrtho(false, 1000, 500);
         gamePort = new FitViewport(950 / MyGdxGame.PPM, 570 / MyGdxGame.PPM, camera);
+        stage = new Stage(gamePort,batch);
 
         map = new TmxMapLoader().load("Map1.tmx");
         renderer = new OrthogonalTiledMapRenderer(map, 1 / MyGdxGame.PPM);
+        isOver = false;
 
-        Music music = Gdx.audio.newMusic(Gdx.files.internal("MMMusic.mp3"));
+        music = Gdx.audio.newMusic(Gdx.files.internal("GameplayMusic.mp3"));
         music.setVolume(.1f);
         music.setLooping(true);
         music.play();
+
 
         //gravity, sleep objs at rest
         camera.position.set(gamePort.getWorldWidth() / 2, gamePort.getWorldHeight() / 2, 0);
@@ -78,69 +84,68 @@ public class GameScreen implements Screen {
         gcl = new GameContactListener(this);
         world.setContactListener(gcl);
         william = new William(world, gcl);
-        hud = new hud(batch, this.game);
+        hud = new hud(batch, this.game,music);
         Gdx.input.setInputProcessor(hud.stage);
         heg = new Hedgehog(this);
-        gameOverMenu = new OverlayScreen(this.game, this);
     }
 
     @Override
     public void render(float delta) {
-        handleInput();
+        if(william.getY() < 0f){
+            isOver = true;
+            game.setScreen(new GameOverScreen(game));
+            music.stop();
+            dispose();
 
-        william.update(delta);
-        heg.update(delta);
-        renderGame(delta);
-        hud.stage.act(delta);
-        hud.stage.draw();
+        } else {
+            gcl.buck(delta);
+            handleInput(delta);
+            william.update(delta);
+            heg.update(delta);
+            renderGame(delta);
+            hud.stage.act(delta);
+            hud.stage.draw();
+        }
     }
 
     // Method for rendering the game
     private void renderGame(float delta) {
-        handleInput();
-        ScreenUtils.clear(.5f, .8f, .8f, 1);
-        debugRenderer.render(world, camera.combined);
+        if(!isOver) {
 
-    //Set camera
-        camera.position.set(william.getX() + william.getWidth() / 2,
-                william.getY() + william.getHeight() / 2,
-                0);
+            ScreenUtils.clear(.5f, .8f, .8f, 1);
+            debugRenderer.render(world, camera.combined);
 
-        camera.position.x = MathUtils.clamp(camera.position.x,
-                camera.viewportWidth / 2,
-                map.getProperties().get("width", Integer.class) * map.getProperties().get("tilewidth", Integer.class) - camera.viewportWidth / 2);
-        camera.position.y = MathUtils.clamp(camera.position.y,
-                camera.viewportHeight / 2,
-                map.getProperties().get("height", Integer.class) * map.getProperties().get("tileheight", Integer.class) - camera.viewportHeight / 2);
+            //Set camera
+            camera.position.set(william.getX() + william.getWidth() / 2,
+                    william.getY() + william.getHeight() / 2,
+                    0);
 
-        float spriteY = william.body.getPosition().y;
-        float spriteHalfHeight = william.getHeight() / 2;
 
-        float mapHeight = map.getProperties().get("height", Integer.class) * map.getProperties().get("tileheight", Integer.class);
+            camera.position.x = MathUtils.clamp(camera.position.x,
+                    camera.viewportWidth / 2,
+                    map.getProperties().get("width", Integer.class) * map.getProperties().get("tilewidth", Integer.class) - camera.viewportWidth / 2);
+            camera.position.y = MathUtils.clamp(camera.position.y,
+                    camera.viewportHeight / 2,
+                    map.getProperties().get("height", Integer.class) * map.getProperties().get("tileheight", Integer.class) - camera.viewportHeight / 2);
 
-        if (spriteY - spriteHalfHeight < 0 || spriteY + spriteHalfHeight > mapHeight) {
-            gameOverMenu.gameOver();
-            game.setScreen(gameOverMenu);
+            renderer.setView(camera);
+            renderer.render();
+
+            // Update the camera's view
+            camera.update();
+            // Draw the sprite
+            batch.setProjectionMatrix(camera.combined);
+            batch.begin();
+            william.draw(batch);
+            heg.draw(batch);
+            batch.end();
+
+            world.step(1 / 60f, 6, 2);
         }
-
-        renderer.setView(camera);
-        renderer.render();
-
-        // Update the camera's view
-        camera.update();
-        // Draw the sprite
-        batch.setProjectionMatrix(camera.combined);
-        batch.begin();
-        william.draw(batch);
-        heg.draw(batch);
-        batch.end();
-
-
-        world.step(1/60f, 6, 2);
     }
 
     //Input for movement
-    private void handleInput() {
+    private void handleInput(float delta) {
 
         if ((Gdx.input.isKeyPressed(Input.Keys.LEFT) || Gdx.input.isKeyPressed(Input.Keys.A)) && william.body.getLinearVelocity().x >= -7.5) {
             william.body.applyLinearImpulse(new Vector2(-0.25f, 0), william.body.getWorldCenter(), true);
@@ -151,6 +156,12 @@ public class GameScreen implements Screen {
             william.body.applyLinearImpulse(new Vector2(0.25f, 0), william.body.getWorldCenter(), true);
             william.isLeft = false;
         }
+
+        if (!gcl.attacking && Gdx.input.isKeyJustPressed(Input.Keys.NUM_1)) {
+            gcl.buckTime = delta;
+            gcl.attacking = true;
+        }
+
         if (!gcl.inAir && (Gdx.input.isKeyPressed(Input.Keys.UP) || Gdx.input.isKeyPressed(Input.Keys.W) || Gdx.input.isKeyPressed(Input.Keys.SPACE))) {
             william.body.applyLinearImpulse(new Vector2(0, 12f), william.body.getWorldCenter(), true);
             gcl.inAir = true;
@@ -175,7 +186,6 @@ public class GameScreen implements Screen {
         }
 
     }
-
     private void buildMapObjects() {
         BodyDef bodyDef = new BodyDef();
         PolygonShape shape;
@@ -241,9 +251,10 @@ public class GameScreen implements Screen {
         }
     }
 
+
+
     @Override
     public void show() {
-
     }
     @Override
     public void resize(int width, int height) {
@@ -264,14 +275,18 @@ public class GameScreen implements Screen {
     public void hide() {
 
     }
-
     @Override
     public void dispose() {
-        // Dispose of resources
         map.dispose();
         renderer.dispose();
         william.getTexture().dispose();
+        batch.dispose();
+        world.dispose();
+        debugRenderer.dispose();
+        hud.dispose();
+        stage.dispose();
     }
+
 }
 
 

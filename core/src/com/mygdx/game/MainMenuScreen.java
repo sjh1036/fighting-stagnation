@@ -31,6 +31,7 @@ public class MainMenuScreen implements Screen {
 
 
     public MainMenuScreen(final MyGdxGame game) {
+        Gdx.app.log("HERE", "MM HERE");
         this.game = game;
         this.stage = new Stage(new ScreenViewport());
         TextureAtlas atlas = new TextureAtlas(Gdx.files.internal("uiskin.atlas"));
@@ -40,7 +41,7 @@ public class MainMenuScreen implements Screen {
         camera = new OrthographicCamera();
         camera.setToOrtho(false, 800, 480);
         backgroundTexture = new Texture(Gdx.files.internal("MenuScreenIMG.jpg"));
-        menuMusic = Gdx.audio.newMusic(Gdx.files.internal("MMMusic.mp3"));
+        menuMusic = Gdx.audio.newMusic(Gdx.files.internal("GameplayMusic.mp3"));
 
         startButton = new TextButton("Start", skin);
         quitButton = new TextButton("Quit", skin);
@@ -63,7 +64,7 @@ public class MainMenuScreen implements Screen {
 
         optionsButton.setPosition(100, 100);
         optionsButton.setSize(140, 45);
-        optionsMenu = new OverlayScreen(game, this);
+        optionsMenu = new OverlayScreen(game, 0, this.stage);
     }
     @Override
     public void render(float delta) {
@@ -87,8 +88,7 @@ public class MainMenuScreen implements Screen {
                 Gdx.app.exit();
         //Handle options button click
             } else if (optionsButton.isPressed()) {
-                optionsMenu.renderOptionsMenu();
-               game.setScreen(optionsMenu);
+                optionsMenu.renderOptionsMenu(menuMusic);
             }
         }
     }
