@@ -19,11 +19,12 @@ public class William extends Sprite {
     public World world;
     public Body body;
     public Boolean isLeft;
-    public enum State {JUMPING, FALLING, STANDING, RUNNING}
+    public enum State {JUMPING, FALLING, STANDING, RUNNING, BUCKING}
     private State currentState;
     private State previousState;
     private final Animation<TextureRegion> willRun;
     private final Animation<TextureRegion> willJump;
+    private final Animation<TextureRegion> willBuck;
     private float stateTimer;
     private final Texture willStand = new Texture(Gdx.files.internal("WillisStill.png"));
     private final GameContactListener gcl;
@@ -59,14 +60,23 @@ public class William extends Sprite {
         for (int i = 0; i < 5; i++) {
             frames.add(new TextureRegion(jumpAni, i * 480, 480, 480, 480));
         }
-        //frames.add(new TextureRegion(jumpAni, 0, 960, 480, 480));
         willJump = new Animation<>(.1f, frames);
+        frames.clear();
+        Texture buckAni = new Texture((Gdx.files.internal("buck-sprite.png")));
+        for (int i = 0; i < 5; i++) {
+            frames.add(new TextureRegion(buckAni, i * 480, 0, 480, 480));
+        }
+        for (int i = 0; i < 4; i++) {
+            frames.add(new TextureRegion(buckAni, i * 480, 480, 480, 480));
+        }
+        willBuck = new Animation<>(.05f, frames);
+
         drawWilliam();
         defineWilliam();
     }
     public void update(float delta) {
         setCenter(body.getPosition().x, body.getPosition().y);
-       willRun.setFrameDuration(.25f - Math.abs(body.getLinearVelocity().x / 50));
+       //willRun.setFrameDuration(.25f - Math.abs(body.getLinearVelocity().x / 50));
         setRegion(getFrame(delta));
     }
     public TextureRegion getFrame(float delta) {
@@ -74,44 +84,58 @@ public class William extends Sprite {
         currentState = getState();
         TextureRegion region;
 
-        if (currentState == State.RUNNING) {
-            region = willRun.getKeyFrame(stateTimer, true);
-        } else if (currentState == State.FALLING) {
-            region = new TextureRegion(willStand);
-        } else if (currentState == State.JUMPING) {
-            region = willJump.getKeyFrame(stateTimer);
+        if (currentState != previousState) {
+            stateTimer = 0;
         } else {
-            region = new TextureRegion(willStand);
+            stateTimer += delta;
         }
 
-        if (( isLeft) && region.isFlipX()) {
-            region.flip(true, false);
+        switch (currentState) {
+            case RUNNING:
+                region = willRun.getKeyFrame(stateTimer, true);
+                break;
+            case JUMPING:
+                region = willJump.getKeyFrame(stateTimer, false);
+                break;
+            case BUCKING:
+                region = willBuck.getKeyFrame(stateTimer, false);
+                if (willBuck.isAnimationFinished(stateTimer)) {
+                    currentState = State.STANDING;
+                    gcl.attacking = false;
+                }
+                break;
+            default:
+                region = new TextureRegion(willStand); // Default to stand texture
+                break;
+        }
 
+        // Flip the texture region if necessary
+        if ((isLeft) && region.isFlipX()) {
+            region.flip(true, false);
         } else if ((!isLeft) && !region.isFlipX()) {
             region.flip(true, false);
-
         }
 
-        if (currentState == previousState) {
-            stateTimer = stateTimer + delta;
-        } else {
-            stateTimer = 0;
-        }
         return region;
     }
     public State getState() {
-        if (gcl.inAir) {
-            if (body.getLinearVelocity().y > 0 || (body.getLinearVelocity().y < 0 && previousState == State.JUMPING)) {
-                return State.JUMPING;
-            }
-            if (body.getLinearVelocity().y < 0) {
-                return State.FALLING;
-            }
+        if (gcl.attacking) {
+            return State.BUCKING;
         }
-        if (body.getLinearVelocity().x < -.1 || body.getLinearVelocity().x > .1) {
-            return State.RUNNING;
+        if (!gcl.inAir) {
+            if (body.getLinearVelocity().x < -.1 || body.getLinearVelocity().x > .1) {
+                return State.RUNNING;
+            }
+            body.setLinearVelocity(0, body.getLinearVelocity().y);
+            return State.STANDING;
+
         }
-        body.setLinearVelocity(0, body.getLinearVelocity().y);
+        if (body.getLinearVelocity().y > 0 || (body.getLinearVelocity().y < 0 && previousState == State.JUMPING)) {
+            return State.JUMPING;
+        }
+        if (body.getLinearVelocity().y < 0) {
+            return State.FALLING;
+        }
         return State.STANDING;
     }
     public void drawWilliam() {

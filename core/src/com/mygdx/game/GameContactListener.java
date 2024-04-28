@@ -13,6 +13,8 @@ public class GameContactListener implements ContactListener {
     public boolean inAir;
     public boolean rightTouching;
     public boolean leftTouching;
+    public boolean attacking;
+    public float buckTime;
     public Sound thud;
     private GameScreen gameScreen;
 
@@ -22,22 +24,32 @@ public class GameContactListener implements ContactListener {
         inAir = true;
         rightTouching = false;
         leftTouching = false;
+        attacking = false;
+        buckTime = 0;
     }
 
     @Override
     public void beginContact(Contact contact) {
         Fixture fixA = contact.getFixtureA();
         Fixture fixB = contact.getFixtureB();
+        if (fixA.getUserData() == "hedgehog" || fixB.getUserData() == "hedgehog") {
+            Fixture hedgehogFixture = fixA.getUserData() == "hedgehog" ? fixA : fixB;
+            Gdx.app.log("CONTACT", "Contact has been made");
+           // gameScreen.removeBody(hedgehogFixture.getBody());
+        }
         if (fixA.getUserData() == "bottom" || fixB.getUserData() == "bottom") {
             Fixture bottom = fixA.getUserData() == "bottom" ? fixA : fixB;
             Fixture other = fixA.getUserData() == "bottom" ? fixB : fixA;
-
+            //Gdx.app.log("BODY IS: ", other.getUserData().toString());
 
             if (other.getUserData() == "door") {
 
             } else if (other.getUserData() == "horn") {
 
-            } else {
+            } else if (other.getUserData() == "hedgehog"){
+                Gdx.app.exit();
+            }
+            else {
                 thud.play(.25f);
                 inAir = false;
             }
@@ -98,6 +110,12 @@ public class GameContactListener implements ContactListener {
             leftTouching = false;
         }
 
+    }
+
+    public void buck(float delta) {
+        if (delta > buckTime + .04f) {
+            attacking = false;
+        }
     }
 
     @Override

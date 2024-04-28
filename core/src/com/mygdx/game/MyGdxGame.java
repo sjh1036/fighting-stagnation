@@ -6,6 +6,9 @@ import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.physics.box2d.Body;
+import com.badlogic.gdx.physics.box2d.World;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
@@ -18,6 +21,7 @@ public class MyGdxGame extends Game {
 	public static final int V_WIDTH = 400;
 	public static final int V_HEIGHT = 200;
 	public static Viewport gamePort;
+	private World world;
 
 	public ShapeRenderer shapeRenderer;
 
@@ -27,6 +31,7 @@ public class MyGdxGame extends Game {
 		font = new BitmapFont();
 		this.setScreen(new MainMenuScreen(this));
 		this.shapeRenderer = new ShapeRenderer();
+		world = new World(new Vector2(0, -9.8f), true);
 	}
 
 	@Override
@@ -34,16 +39,12 @@ public class MyGdxGame extends Game {
 		super.render();
 	}
 
-	public void switchToMenuScreen() {
-		setScreen(new MainMenuScreen(this));
-	}
-
-//	public void overlayScreenPopup() {
-//		setScreen(new OverlayScreen(this, this.screen));
-//	}
-
 	@Override
 	public void dispose() {
+		batch.dispose();
+		font.dispose();
+		shapeRenderer.dispose();
+		world.dispose();
 
 	}
 }

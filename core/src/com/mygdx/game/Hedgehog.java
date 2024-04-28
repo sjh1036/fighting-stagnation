@@ -13,6 +13,8 @@ public class Hedgehog extends Enemy {
 
     private float stateTime;
     private final Animation<TextureRegion> walkAni;
+    public boolean isLeft;
+    TextureRegion region;
 
     public Hedgehog(GameScreen gameScreen) {
         super(gameScreen);
@@ -23,20 +25,49 @@ public class Hedgehog extends Enemy {
         }
         walkAni = new Animation<>(0.2f, frames);
         stateTime = 0;
+        isLeft = false;
         setSize(102.8f / MyGdxGame.PPM, 57.9f / MyGdxGame.PPM);
-//        setBounds(getX(), getY(), 102.8f / MyGdxGame.PPM, 57.9f / MyGdxGame.PPM);
     }
 
     public void update(float delta) {
         stateTime += delta;
+        float speed = 1.6f;
+
         setPosition(body.getPosition().x - getWidth() / 2, body.getPosition().y - getHeight() / 2);
-        setRegion(new TextureRegion(walkAni.getKeyFrame(stateTime, true)));
+
+        if (!isLeft) {
+            body.setLinearVelocity(speed, body.getLinearVelocity().y);
+        } else {
+            body.setLinearVelocity(-speed, body.getLinearVelocity().y);
+        }
+
+
+        TextureRegion currentRegion = new TextureRegion(walkAni.getKeyFrame(stateTime, true));
+        if (region == null) {
+            region = currentRegion;
+        } else {
+            region.setRegion(currentRegion);
+        }
+        if ((body.getPosition().x * MyGdxGame.PPM) >= 870 && !isLeft) {
+            flipSprite();
+        } else if ((body.getPosition().x * MyGdxGame.PPM) <= 600 && isLeft) {
+            flipSprite();
+        }
+        setRegion(region);
+    }
+    private void flipSprite() {
+        if ((isLeft) && region.isFlipX()) {
+            region.flip(true, false);
+        } else if ((!isLeft) && !region.isFlipX()) {
+            region.flip(true, false);
+        }
+        isLeft = !isLeft;
     }
 
     @Override
     protected void defineEnemy() {
         BodyDef bdef = new BodyDef();
-        bdef.position.set(200 / MyGdxGame.PPM, 175 / MyGdxGame.PPM);
+        bdef.position.set(790 / MyGdxGame.PPM, 175 / MyGdxGame.PPM);
         bdef.type = BodyDef.BodyType.DynamicBody;
         body = world.createBody(bdef);
         body.setUserData("hedgehog");
