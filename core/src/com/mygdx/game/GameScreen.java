@@ -86,7 +86,8 @@ public class GameScreen implements Screen {
 
     @Override
     public void render(float delta) {
-        if(william.getY() < 0f){
+        //[W: 19.791666] H: 11.875
+      if(william.getY() < 0f){
             isOver = true;
             game.setScreen(new GameOverScreen(game));
             music.stop();
@@ -105,20 +106,23 @@ public class GameScreen implements Screen {
 
     // Method for rendering the game
     private void renderGame(float delta) {
-        if(!isOver) {
-
+        if (!isOver) {
             ScreenUtils.clear(.5f, .8f, .8f, 1);
             debugRenderer.render(world, camera.combined);
 
-            //Set camera
+            // Set camera
             camera.position.set(william.getX() + william.getWidth() / 2,
                     william.getY() + william.getHeight() / 2,
                     0);
 
+            // Calculate the maximum x-coordinate to clamp the camera
+            float maxX = map.getProperties().get("width", Integer.class) * map.getProperties().get("tilewidth", Integer.class) - camera.viewportWidth / 2;
 
+            // Clamp the camera's position within the map bounds
             camera.position.x = MathUtils.clamp(camera.position.x,
                     camera.viewportWidth / 2,
-                    map.getProperties().get("width", Integer.class) * map.getProperties().get("tilewidth", Integer.class) - camera.viewportWidth / 2);
+                    maxX);
+
             camera.position.y = MathUtils.clamp(camera.position.y,
                     camera.viewportHeight / 2,
                     map.getProperties().get("height", Integer.class) * map.getProperties().get("tileheight", Integer.class) - camera.viewportHeight / 2);
@@ -128,6 +132,7 @@ public class GameScreen implements Screen {
 
             // Update the camera's view
             camera.update();
+
             // Draw the sprite
             batch.setProjectionMatrix(camera.combined);
             batch.begin();
@@ -138,7 +143,6 @@ public class GameScreen implements Screen {
             world.step(1 / 60f, 6, 2);
         }
     }
-
     //Input for movement
     private void handleInput(float delta) {
 
