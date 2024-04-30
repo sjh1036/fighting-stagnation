@@ -14,10 +14,11 @@ public class Hedgehog extends Enemy {
     private float stateTime;
     private final Animation<TextureRegion> walkAni;
     public boolean isLeft;
-    TextureRegion region;
 
-    public Hedgehog(GameScreen gameScreen) {
-        super(gameScreen);
+
+    public Hedgehog(GameScreen gameScreen, float x, float y, float leftBound, float rightBound) {
+        super(gameScreen, x, y, leftBound, rightBound);
+
         Array<TextureRegion> frames = new Array<>();
         for (int i = 0; i < 4; i++) {
             Texture hedgeWalk = new Texture(Gdx.files.internal("hedgehogSprite.png"));
@@ -27,9 +28,11 @@ public class Hedgehog extends Enemy {
         stateTime = 0;
         isLeft = false;
         setSize(102.8f / MyGdxGame.PPM, 57.9f / MyGdxGame.PPM);
+//        setBounds(getX(), getY(), 102.8f / MyGdxGame.PPM, 57.9f / MyGdxGame.PPM);
     }
 
     public void update(float delta) {
+        TextureRegion region = walkAni.getKeyFrame(stateTime, true);
         stateTime += delta;
         float speed = 1.6f;
 
@@ -41,40 +44,33 @@ public class Hedgehog extends Enemy {
             body.setLinearVelocity(-speed, body.getLinearVelocity().y);
         }
 
+        if (body.getPosition().x  >= (rightBound - getWidth()) / MyGdxGame.PPM) {
+            isLeft = true;
+        } else if (body.getPosition().x <= leftBound / MyGdxGame.PPM) {
+            isLeft = false;
+        }
 
-        TextureRegion currentRegion = new TextureRegion(walkAni.getKeyFrame(stateTime, true));
-        if (region == null) {
-            region = currentRegion;
-        } else {
-            region.setRegion(currentRegion);
+        if (isLeft && region.isFlipX()) {
+            region.flip(true, false);
+        } else if (!isLeft && !region.isFlipX()) {
+            region.flip(true, false);
         }
-        if ((body.getPosition().x * MyGdxGame.PPM) >= 870 && !isLeft) {
-            flipSprite();
-        } else if ((body.getPosition().x * MyGdxGame.PPM) <= 600 && isLeft) {
-            flipSprite();
-        }
+
         setRegion(region);
     }
-    private void flipSprite() {
-        if ((isLeft) && region.isFlipX()) {
-            region.flip(true, false);
-        } else if ((!isLeft) && !region.isFlipX()) {
-            region.flip(true, false);
-        }
-        isLeft = !isLeft;
-    }
+
 
     @Override
-    protected void defineEnemy() {
+    protected void defineEnemy(float x, float y) {
         BodyDef bdef = new BodyDef();
-        bdef.position.set(790 / MyGdxGame.PPM, 175 / MyGdxGame.PPM);
+        bdef.position.set(x / MyGdxGame.PPM, y / MyGdxGame.PPM);
         bdef.type = BodyDef.BodyType.DynamicBody;
         body = world.createBody(bdef);
         body.setUserData("hedgehog");
 
         FixtureDef fdef = new FixtureDef();
         PolygonShape shape = new PolygonShape();
-        shape.setAsBox(20f / MyGdxGame.PPM, 20f / MyGdxGame.PPM);
+        shape.setAsBox(20f / MyGdxGame.PPM, 16f / MyGdxGame.PPM);
 
         fdef.shape = shape;
         body.createFixture(fdef);

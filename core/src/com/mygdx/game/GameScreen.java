@@ -1,11 +1,7 @@
 
 package com.mygdx.game;
 
-import java.nio.charset.StandardCharsets;
-import java.util.Iterator;
-
 import com.badlogic.gdx.Gdx;
-
 
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.audio.Music;
@@ -47,9 +43,8 @@ public class GameScreen implements Screen {
     SpriteBatch batch;
     private final hud hud;
     private final Music music;
-    public GameOverScreen gameOverMenu;
     Stage stage;
-
+    private final float gravity = -18;
     private final Hedgehog heg;
     public GameScreen(final MyGdxGame game) {
         this.game = game;
@@ -74,7 +69,7 @@ public class GameScreen implements Screen {
 
         //gravity, sleep objs at rest
         camera.position.set(gamePort.getWorldWidth() / 2, gamePort.getWorldHeight() / 2, 0);
-        world = new World(new Vector2(0, -25), true);
+        world = new World(new Vector2(0, gravity), true);
         debugRenderer = new Box2DDebugRenderer();
 
 
@@ -86,12 +81,13 @@ public class GameScreen implements Screen {
         william = new William(world, gcl);
         hud = new hud(batch, this.game,music);
         Gdx.input.setInputProcessor(hud.stage);
-        heg = new Hedgehog(this);
+        heg = new Hedgehog(this, 790, 175, 600, 900);
     }
 
     @Override
     public void render(float delta) {
-        if(william.getY() < 0f){
+        //[W: 19.791666] H: 11.875
+      if(william.getY() < 0f){
             isOver = true;
             game.setScreen(new GameOverScreen(game));
             music.stop();
@@ -110,20 +106,23 @@ public class GameScreen implements Screen {
 
     // Method for rendering the game
     private void renderGame(float delta) {
-        if(!isOver) {
-
+        if (!isOver) {
             ScreenUtils.clear(.5f, .8f, .8f, 1);
             debugRenderer.render(world, camera.combined);
 
-            //Set camera
+            // Set camera
             camera.position.set(william.getX() + william.getWidth() / 2,
                     william.getY() + william.getHeight() / 2,
                     0);
 
+            // Calculate the maximum x-coordinate to clamp the camera
+            float maxX = map.getProperties().get("width", Integer.class) * map.getProperties().get("tilewidth", Integer.class) - camera.viewportWidth / 2;
 
+            // Clamp the camera's position within the map bounds
             camera.position.x = MathUtils.clamp(camera.position.x,
                     camera.viewportWidth / 2,
-                    map.getProperties().get("width", Integer.class) * map.getProperties().get("tilewidth", Integer.class) - camera.viewportWidth / 2);
+                    maxX);
+
             camera.position.y = MathUtils.clamp(camera.position.y,
                     camera.viewportHeight / 2,
                     map.getProperties().get("height", Integer.class) * map.getProperties().get("tileheight", Integer.class) - camera.viewportHeight / 2);
@@ -133,6 +132,7 @@ public class GameScreen implements Screen {
 
             // Update the camera's view
             camera.update();
+
             // Draw the sprite
             batch.setProjectionMatrix(camera.combined);
             batch.begin();
@@ -143,17 +143,16 @@ public class GameScreen implements Screen {
             world.step(1 / 60f, 6, 2);
         }
     }
-
     //Input for movement
     private void handleInput(float delta) {
 
-        if ((Gdx.input.isKeyPressed(Input.Keys.LEFT) || Gdx.input.isKeyPressed(Input.Keys.A)) && william.body.getLinearVelocity().x >= -7.5) {
-            william.body.applyLinearImpulse(new Vector2(-0.25f, 0), william.body.getWorldCenter(), true);
+        if ((Gdx.input.isKeyPressed(Input.Keys.LEFT) || Gdx.input.isKeyPressed(Input.Keys.A)) && william.body.getLinearVelocity().x >= -6.5) {
+            william.body.applyLinearImpulse(new Vector2(-0.3f, 0), william.body.getWorldCenter(), true);
             william.isLeft = true;
         }
 
-        if ((Gdx.input.isKeyPressed(Input.Keys.RIGHT) || Gdx.input.isKeyPressed(Input.Keys.D)) && william.body.getLinearVelocity().x <= 7.5) {
-            william.body.applyLinearImpulse(new Vector2(0.25f, 0), william.body.getWorldCenter(), true);
+        if ((Gdx.input.isKeyPressed(Input.Keys.RIGHT) || Gdx.input.isKeyPressed(Input.Keys.D)) && william.body.getLinearVelocity().x <= 6.5) {
+            william.body.applyLinearImpulse(new Vector2(0.3f, 0), william.body.getWorldCenter(), true);
             william.isLeft = false;
         }
 
@@ -163,12 +162,14 @@ public class GameScreen implements Screen {
         }
 
         if (!gcl.inAir && (Gdx.input.isKeyPressed(Input.Keys.UP) || Gdx.input.isKeyPressed(Input.Keys.W) || Gdx.input.isKeyPressed(Input.Keys.SPACE))) {
-            william.body.applyLinearImpulse(new Vector2(0, 12f), william.body.getWorldCenter(), true);
+            william.body.applyLinearImpulse(new Vector2(0, 10f), william.body.getWorldCenter(), true);
             gcl.inAir = true;
         } else if (gcl.inAir && gcl.rightTouching && (Gdx.input.isKeyJustPressed(Input.Keys.UP) || Gdx.input.isKeyJustPressed(Input.Keys.W) || Gdx.input.isKeyJustPressed(Input.Keys.SPACE))) {
-            william.body.applyLinearImpulse(new Vector2(-3f, 5f), william.body.getWorldCenter(), true);
+            william.body.applyLinearImpulse(new Vector2(-6f, 7f), william.body.getWorldCenter(), true);
+            william.isLeft = true;
         } else if (gcl.inAir && gcl.leftTouching && (Gdx.input.isKeyJustPressed(Input.Keys.UP) || Gdx.input.isKeyJustPressed(Input.Keys.W) || Gdx.input.isKeyJustPressed(Input.Keys.SPACE))) {
-            william.body.applyLinearImpulse(new Vector2(3f, 5f), william.body.getWorldCenter(), true);
+            william.body.applyLinearImpulse(new Vector2(6f, 7f), william.body.getWorldCenter(), true);
+            william.isLeft = false;
         }
 
         //extra inputs
@@ -178,11 +179,11 @@ public class GameScreen implements Screen {
         }
         //anti grav on william
         if (Gdx.input.isKeyJustPressed(Input.Keys.SHIFT_LEFT)) {
-            world.setGravity(new Vector2(0, 20));
+            world.setGravity(new Vector2(0, -gravity));
         }
         //grav on william
         if (Gdx.input.isKeyJustPressed(Input.Keys.CONTROL_LEFT)) {
-            world.setGravity(new Vector2(0, -20));
+            world.setGravity(new Vector2(0, gravity));
         }
 
     }

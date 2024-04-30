@@ -23,7 +23,6 @@ public class OverlayScreen extends ScreenAdapter {
     public int type;
     Window optionsMenu;
     Window pauseMenu;
-    Window gameOverMenu;
     Skin skin;
     Music music;
 
@@ -78,7 +77,7 @@ public class OverlayScreen extends ScreenAdapter {
         
         if(type == 1) {
             optionsMenu.setScale(0.5f);
-            optionsMenu.setPosition(200, 120);
+            optionsMenu.setPosition(stage.getWidth(), stage.getHeight());
             stage.addActor(optionsMenu);
 
         } else {
@@ -86,9 +85,6 @@ public class OverlayScreen extends ScreenAdapter {
                     (Gdx.graphics.getHeight() - optionsMenu.getHeight()) / 2);
             stage.addActor(optionsMenu);
         }
-
-
-
         Gdx.input.setInputProcessor(stage);
 
     }
@@ -100,7 +96,7 @@ public class OverlayScreen extends ScreenAdapter {
 
         float buttonX = (pauseMenu.getWidth() - resumeButton.getWidth() - quitButton.getWidth() - 20) / 2;
         resumeButton.setPosition(buttonX, 30);
-        quitButton.setPosition(buttonX + resumeButton.getWidth() + 20, 30);
+        quitButton.setPosition(buttonX + resumeButton.getWidth() + 100, 30);
 
         // Add listeners to the buttons
         resumeButton.addListener(new ClickListener() {
