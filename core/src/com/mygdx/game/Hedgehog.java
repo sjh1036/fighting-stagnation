@@ -13,7 +13,6 @@ public class Hedgehog extends Enemy {
 
     private float stateTime;
     private final Animation<TextureRegion> walkAni;
-    public boolean isLeft;
 
 
     public Hedgehog(GameScreen gameScreen, float x, float y, float leftBound, float rightBound) {
@@ -26,37 +25,39 @@ public class Hedgehog extends Enemy {
         }
         walkAni = new Animation<>(0.2f, frames);
         stateTime = 0;
-        isLeft = false;
-        setSize(102.8f / MyGdxGame.PPM, 57.9f / MyGdxGame.PPM);
-//        setBounds(getX(), getY(), 102.8f / MyGdxGame.PPM, 57.9f / MyGdxGame.PPM);
+        setSize(128.5f / MyGdxGame.PPM, 72.375f / MyGdxGame.PPM);
+
+
     }
-
+    @Override
     public void update(float delta) {
-        TextureRegion region = walkAni.getKeyFrame(stateTime, true);
-        stateTime += delta;
-        float speed = 1.6f;
+        if (!isDestroyed) {
+            TextureRegion region = walkAni.getKeyFrame(stateTime, true);
+            stateTime += delta;
+            float speed = 1.6f;
 
-        setPosition(body.getPosition().x - getWidth() / 2, body.getPosition().y - getHeight() / 2);
+            setPosition(body.getPosition().x - getWidth() / 2, body.getPosition().y - getHeight() / 2);
 
-        if (!isLeft) {
-            body.setLinearVelocity(speed, body.getLinearVelocity().y);
-        } else {
-            body.setLinearVelocity(-speed, body.getLinearVelocity().y);
+            if (!isLeft) {
+                body.setLinearVelocity(speed, body.getLinearVelocity().y);
+            } else {
+                body.setLinearVelocity(-speed, body.getLinearVelocity().y);
+            }
+
+            if (body.getPosition().x >= (rightBound - getWidth()) / MyGdxGame.PPM) {
+                isLeft = true;
+            } else if (body.getPosition().x <= leftBound / MyGdxGame.PPM) {
+                isLeft = false;
+            }
+
+            if (isLeft && region.isFlipX()) {
+                region.flip(true, false);
+            } else if (!isLeft && !region.isFlipX()) {
+                region.flip(true, false);
+            }
+
+            setRegion(region);
         }
-
-        if (body.getPosition().x  >= (rightBound - getWidth()) / MyGdxGame.PPM) {
-            isLeft = true;
-        } else if (body.getPosition().x <= leftBound / MyGdxGame.PPM) {
-            isLeft = false;
-        }
-
-        if (isLeft && region.isFlipX()) {
-            region.flip(true, false);
-        } else if (!isLeft && !region.isFlipX()) {
-            region.flip(true, false);
-        }
-
-        setRegion(region);
     }
 
 
@@ -70,9 +71,9 @@ public class Hedgehog extends Enemy {
 
         FixtureDef fdef = new FixtureDef();
         PolygonShape shape = new PolygonShape();
-        shape.setAsBox(20f / MyGdxGame.PPM, 16f / MyGdxGame.PPM);
+        shape.setAsBox(25 / MyGdxGame.PPM, 20 / MyGdxGame.PPM);
 
         fdef.shape = shape;
-        body.createFixture(fdef);
+        body.createFixture(fdef).setUserData("hedgehog");
     }
 }

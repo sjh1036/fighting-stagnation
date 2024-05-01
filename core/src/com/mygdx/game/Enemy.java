@@ -10,13 +10,18 @@ public abstract class Enemy extends Sprite {
     public Body body;
     public final float leftBound;
     public final float rightBound;
+    public boolean isLeft;
+    public boolean isDestroyed;
     public Enemy(GameScreen gameScreen, float spawnX, float spawnY, float leftBound, float rightBound) {
         this.world = gameScreen.world;
         this.gameScreen = gameScreen;
         this.leftBound = leftBound;
         this.rightBound = rightBound;
+        this.isDestroyed = false;
+        this.isLeft = false;
         defineEnemy(spawnX, spawnY);
     }
 
+    public abstract void update(float delta);
     protected abstract void defineEnemy(float x, float y);
 }

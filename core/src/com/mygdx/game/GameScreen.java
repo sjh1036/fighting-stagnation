@@ -24,32 +24,35 @@ import com.badlogic.gdx.physics.box2d.FixtureDef;
 import com.badlogic.gdx.physics.box2d.PolygonShape;
 import com.badlogic.gdx.physics.box2d.World;
 import com.badlogic.gdx.scenes.scene2d.Stage;
+import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.ScreenUtils;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
+
 public class GameScreen implements Screen {
-    final MyGdxGame game;
-    OrthographicCamera camera;
+    public static final float gravity = -18;
+    public World world;
+    private final MyGdxGame game;
+    private final OrthographicCamera camera;
     private final Viewport gamePort;
     private final TiledMap map;
     private final OrthogonalTiledMapRenderer renderer;
-    boolean isOver;
-    public World world;
+    private boolean isOver;
     private final Box2DDebugRenderer debugRenderer;
     private final William william;
     private final GameContactListener gcl;
-    SpriteBatch batch;
+    private final SpriteBatch batch;
     private final hud hud;
     private final Music music;
-    Stage stage;
-    private final float gravity = -18;
-    private final Hedgehog heg;
+    private final Stage stage;
+    private final Array<Enemy> enemies;
+    public Array<Body> toBeDestroyed;
     public GameScreen(final MyGdxGame game) {
         this.game = game;
 
-    //Set camera and load map
+        //Set camera and load map
         batch = new SpriteBatch();
 
         camera = new OrthographicCamera();
@@ -66,38 +69,44 @@ public class GameScreen implements Screen {
         music.setLooping(true);
         music.play();
 
-
-        //gravity, sleep objs at rest
         camera.position.set(gamePort.getWorldWidth() / 2, gamePort.getWorldHeight() / 2, 0);
+        //gravity, sleep objs at rest
         world = new World(new Vector2(0, gravity), true);
-        debugRenderer = new Box2DDebugRenderer();
-
-
         //creating objects for each map object
         buildMapObjects();
 
         gcl = new GameContactListener(this);
         world.setContactListener(gcl);
-        william = new William(world, gcl);
+
+        debugRenderer = new Box2DDebugRenderer();
         hud = new hud(batch, this.game,music);
         Gdx.input.setInputProcessor(hud.stage);
-        heg = new Hedgehog(this, 790, 175, 600, 900);
+
+        //creation of william and enemies
+        william = new William(world, gcl);
+        enemies = new Array<>();
+
+        //spawn x, spawn y, left bound + 13, right bound - 13
+        enemies.add(new Hedgehog(this, 864, 1200 - 1008, 576 + 13, 912 - 13));
+        enemies.add(new Hedgehog(this, 2064, 1200 - 1056, 1920 + 13, 2256 - 13));
+        enemies.add(new Hedgehog(this, 3456, 1200 - 576, 3312 + 13, 3600 - 13));
+        enemies.add(new Hedgehog(this, 2832, 1200 - 528, 2640 + 13, 3072 - 13));
+        enemies.add(new Hedgehog(this, 2160, 1200 - 624, 1920 + 13, 2496 - 13));
+        toBeDestroyed = new Array<>();
     }
 
     @Override
     public void render(float delta) {
-        //[W: 19.791666] H: 11.875
-      if(william.getY() < 0f){
+        if(william.getY() < 0f){
             isOver = true;
             game.setScreen(new GameOverScreen(game));
             music.stop();
             dispose();
-
         } else {
             gcl.buck(delta);
             handleInput(delta);
             william.update(delta);
-            heg.update(delta);
+            updateEnemies(delta);
             renderGame(delta);
             hud.stage.act(delta);
             hud.stage.draw();
@@ -106,23 +115,36 @@ public class GameScreen implements Screen {
 
     // Method for rendering the game
     private void renderGame(float delta) {
-        if (!isOver) {
+        if(!isOver) {
+            while (toBeDestroyed.size > 0) {
+                Body tbd = toBeDestroyed.pop();
+
+                if (tbd.equals(william.body)) {
+                    isOver = true;
+                    game.setScreen(new GameOverScreen(game));
+                    music.stop();
+                }
+                for(Enemy e: enemies) {
+                    if (e.body.equals(tbd)) {
+                        e.isDestroyed = true;
+                        e.setPosition(-100, -100);
+                        world.destroyBody(tbd);
+                        break;
+                    }
+                }
+            }
+
             ScreenUtils.clear(.5f, .8f, .8f, 1);
             debugRenderer.render(world, camera.combined);
 
-            // Set camera
+            //Set camera
             camera.position.set(william.getX() + william.getWidth() / 2,
                     william.getY() + william.getHeight() / 2,
                     0);
 
-            // Calculate the maximum x-coordinate to clamp the camera
-            float maxX = map.getProperties().get("width", Integer.class) * map.getProperties().get("tilewidth", Integer.class) - camera.viewportWidth / 2;
-
-            // Clamp the camera's position within the map bounds
             camera.position.x = MathUtils.clamp(camera.position.x,
                     camera.viewportWidth / 2,
-                    maxX);
-
+                    map.getProperties().get("width", Integer.class) * map.getProperties().get("tilewidth", Integer.class) - camera.viewportWidth / 2);
             camera.position.y = MathUtils.clamp(camera.position.y,
                     camera.viewportHeight / 2,
                     map.getProperties().get("height", Integer.class) * map.getProperties().get("tileheight", Integer.class) - camera.viewportHeight / 2);
@@ -132,28 +154,28 @@ public class GameScreen implements Screen {
 
             // Update the camera's view
             camera.update();
-
             // Draw the sprite
             batch.setProjectionMatrix(camera.combined);
             batch.begin();
             william.draw(batch);
-            heg.draw(batch);
+            drawEnemies(batch);
             batch.end();
 
             world.step(1 / 60f, 6, 2);
         }
     }
+
     //Input for movement
     private void handleInput(float delta) {
 
         if ((Gdx.input.isKeyPressed(Input.Keys.LEFT) || Gdx.input.isKeyPressed(Input.Keys.A)) && william.body.getLinearVelocity().x >= -6.5) {
             william.body.applyLinearImpulse(new Vector2(-0.3f, 0), william.body.getWorldCenter(), true);
-            william.isLeft = true;
+            gcl.isLeft = true;
         }
 
         if ((Gdx.input.isKeyPressed(Input.Keys.RIGHT) || Gdx.input.isKeyPressed(Input.Keys.D)) && william.body.getLinearVelocity().x <= 6.5) {
             william.body.applyLinearImpulse(new Vector2(0.3f, 0), william.body.getWorldCenter(), true);
-            william.isLeft = false;
+            gcl.isLeft = false;
         }
 
         if (!gcl.attacking && Gdx.input.isKeyJustPressed(Input.Keys.NUM_1)) {
@@ -166,10 +188,10 @@ public class GameScreen implements Screen {
             gcl.inAir = true;
         } else if (gcl.inAir && gcl.rightTouching && (Gdx.input.isKeyJustPressed(Input.Keys.UP) || Gdx.input.isKeyJustPressed(Input.Keys.W) || Gdx.input.isKeyJustPressed(Input.Keys.SPACE))) {
             william.body.applyLinearImpulse(new Vector2(-6f, 7f), william.body.getWorldCenter(), true);
-            william.isLeft = true;
+            gcl.isLeft = true;
         } else if (gcl.inAir && gcl.leftTouching && (Gdx.input.isKeyJustPressed(Input.Keys.UP) || Gdx.input.isKeyJustPressed(Input.Keys.W) || Gdx.input.isKeyJustPressed(Input.Keys.SPACE))) {
             william.body.applyLinearImpulse(new Vector2(6f, 7f), william.body.getWorldCenter(), true);
-            william.isLeft = false;
+            gcl.isLeft = false;
         }
 
         //extra inputs
@@ -186,6 +208,16 @@ public class GameScreen implements Screen {
             world.setGravity(new Vector2(0, gravity));
         }
 
+    }
+    private void drawEnemies(SpriteBatch batch) {
+        for (Enemy e: enemies) {
+            e.draw(batch);
+        }
+    }
+    private void updateEnemies(float delta) {
+        for (Enemy e: enemies) {
+            e.update(delta);
+        }
     }
     private void buildMapObjects() {
         BodyDef bodyDef = new BodyDef();
@@ -246,8 +278,8 @@ public class GameScreen implements Screen {
             shape.setAsBox(rec.getWidth() / 2 / MyGdxGame.PPM, rec.getHeight() / 2 / MyGdxGame.PPM);
             fDef.shape = shape;
             fDef.isSensor = true;
+            Gdx.app.log(object.getName(), object.getName());
             body.createFixture(fDef).setUserData(object.getName());
-
             shape.dispose();
         }
     }

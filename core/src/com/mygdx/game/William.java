@@ -18,7 +18,6 @@ import com.badlogic.gdx.utils.Array;
 public class William extends Sprite {
     public World world;
     public Body body;
-    public Boolean isLeft;
     public enum State {JUMPING, FALLING, STANDING, RUNNING, BUCKING}
     private State currentState;
     private State previousState;
@@ -33,7 +32,7 @@ public class William extends Sprite {
         super(new Texture(Gdx.files.internal("WillisStill.png")));
         this.world = world;
         this.gcl = gcl;
-        isLeft = true;
+        gcl.isLeft = true;
 
         currentState = State.STANDING;
         previousState = State.STANDING;
@@ -119,9 +118,9 @@ public class William extends Sprite {
         }
 
         // Flip the texture region if necessary
-        if ((isLeft) && region.isFlipX()) {
+        if ((gcl.isLeft) && region.isFlipX()) {
             region.flip(true, false);
-        } else if ((!isLeft) && !region.isFlipX()) {
+        } else if ((!gcl.isLeft) && !region.isFlipX()) {
             region.flip(true, false);
         }
 
@@ -202,4 +201,3 @@ public class William extends Sprite {
 
 
 }
-
