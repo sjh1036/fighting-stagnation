@@ -41,10 +41,10 @@ public class GameScreen implements Screen {
     private final OrthogonalTiledMapRenderer renderer;
     private boolean isOver;
     private final Box2DDebugRenderer debugRenderer;
-    private final William william;
+    public final William william;
     private final GameContactListener gcl;
     private final SpriteBatch batch;
-    private final hud hud;
+    public final hud hud;
     private final Music music;
     private final Stage stage;
     private final Array<Enemy> enemies;
@@ -56,8 +56,8 @@ public class GameScreen implements Screen {
         batch = new SpriteBatch();
 
         camera = new OrthographicCamera();
-        camera.setToOrtho(false, 1000, 500);
-        gamePort = new FitViewport(1000 / MyGdxGame.PPM, 570 / MyGdxGame.PPM, camera);
+        camera.setToOrtho(false, 960, 540);
+        gamePort = new FitViewport(960 / MyGdxGame.PPM, 540 / MyGdxGame.PPM, camera);
         stage = new Stage(gamePort,batch);
         map = new TmxMapLoader().load("Map1.tmx");
         renderer = new OrthogonalTiledMapRenderer(map, 1 / MyGdxGame.PPM);
@@ -74,24 +74,25 @@ public class GameScreen implements Screen {
         //creating objects for each map object
         buildMapObjects();
 
-        gcl = new GameContactListener(this, batch,game, music);
-        world.setContactListener(gcl);
-
         debugRenderer = new Box2DDebugRenderer();
         hud = new hud(batch, this.game,music);
         Gdx.input.setInputProcessor(hud.stage);
 
         //creation of william and enemies
-        william = new William(world, gcl);
+        william = new William(world, this);
         enemies = new Array<>();
 
         //spawn x, spawn y, left bound + 13, right bound - 13
-        enemies.add(new Hedgehog(this, 864, 1200 - 1008, 576 + 13, 912 - 13));
+        enemies.add(new Fox(this, 864, 1200 - 1008, 576 + 20, 912 - 20));
         enemies.add(new Hedgehog(this, 2064, 1200 - 1056, 1920 + 13, 2256 - 13));
         enemies.add(new Hedgehog(this, 3456, 1200 - 576, 3312 + 13, 3600 - 13));
         enemies.add(new Hedgehog(this, 2832, 1200 - 528, 2640 + 13, 3072 - 13));
         enemies.add(new Hedgehog(this, 2160, 1200 - 624, 1920 + 13, 2496 - 13));
         toBeDestroyed = new Array<>();
+
+        //do not move this above william = new William(world);
+        gcl = new GameContactListener(this, batch,game, music);
+        world.setContactListener(gcl);
     }
 
     @Override
@@ -117,24 +118,18 @@ public class GameScreen implements Screen {
         if(!isOver) {
             while (toBeDestroyed.size > 0) {
                 Body tbd = toBeDestroyed.pop();
-
-                if (tbd.equals(william.body)) {
-                    isOver = true;
-                    game.setScreen(new GameOverScreen(game,music));
-                    music.stop();
-                }
                 for(Enemy e: enemies) {
                     if (e.body.equals(tbd)) {
                         e.isDestroyed = true;
                         e.setPosition(-100, -100);
-                        world.destroyBody(tbd);
                         break;
                     }
                 }
+                world.destroyBody(tbd);
             }
 
             ScreenUtils.clear(.5f, .8f, .8f, 1);
-            debugRenderer.render(world, camera.combined);
+
 
             //Set camera
             camera.position.set(william.getX() + william.getWidth() / 2,
@@ -161,6 +156,7 @@ public class GameScreen implements Screen {
             batch.end();
 
             world.step(1 / 60f, 6, 2);
+            debugRenderer.render(world, camera.combined);
         }
     }
 
@@ -169,34 +165,35 @@ public class GameScreen implements Screen {
 
         if ((Gdx.input.isKeyPressed(Input.Keys.LEFT) || Gdx.input.isKeyPressed(Input.Keys.A)) && william.body.getLinearVelocity().x >= -6.5) {
             william.body.applyLinearImpulse(new Vector2(-0.3f, 0), william.body.getWorldCenter(), true);
-            gcl.isLeft = true;
+            william.isLeft = true;
         }
 
         if ((Gdx.input.isKeyPressed(Input.Keys.RIGHT) || Gdx.input.isKeyPressed(Input.Keys.D)) && william.body.getLinearVelocity().x <= 6.5) {
             william.body.applyLinearImpulse(new Vector2(0.3f, 0), william.body.getWorldCenter(), true);
-            gcl.isLeft = false;
+            william.isLeft = false;
         }
 
-        if (!gcl.attacking && Gdx.input.isKeyJustPressed(Input.Keys.NUM_1)) {
-            gcl.buckTime = delta;
-            gcl.attacking = true;
+        if (!william.attacking && Gdx.input.isKeyJustPressed(Input.Keys.SPACE)) {
+            william.buckTime = delta;
+            william.attacking = true;
         }
 
-        if (!gcl.inAir && (Gdx.input.isKeyPressed(Input.Keys.UP) || Gdx.input.isKeyPressed(Input.Keys.W) || Gdx.input.isKeyPressed(Input.Keys.SPACE))) {
+        if (!william.inAir && (Gdx.input.isKeyPressed(Input.Keys.UP) || Gdx.input.isKeyPressed(Input.Keys.W))) {
             william.body.applyLinearImpulse(new Vector2(0, 10f), william.body.getWorldCenter(), true);
-            gcl.inAir = true;
-        } else if (gcl.inAir && gcl.rightTouching && (Gdx.input.isKeyJustPressed(Input.Keys.UP) || Gdx.input.isKeyJustPressed(Input.Keys.W) || Gdx.input.isKeyJustPressed(Input.Keys.SPACE))) {
+            william.inAir = true;
+        } else if (william.inAir && william.rightTouching && (Gdx.input.isKeyJustPressed(Input.Keys.UP) || Gdx.input.isKeyJustPressed(Input.Keys.W))) {
             william.body.applyLinearImpulse(new Vector2(-6f, 7f), william.body.getWorldCenter(), true);
-            gcl.isLeft = true;
-        } else if (gcl.inAir && gcl.leftTouching && (Gdx.input.isKeyJustPressed(Input.Keys.UP) || Gdx.input.isKeyJustPressed(Input.Keys.W) || Gdx.input.isKeyJustPressed(Input.Keys.SPACE))) {
+            william.isLeft = true;
+        } else if (william.inAir && william.leftTouching && (Gdx.input.isKeyJustPressed(Input.Keys.UP) || Gdx.input.isKeyJustPressed(Input.Keys.W))) {
             william.body.applyLinearImpulse(new Vector2(6f, 7f), william.body.getWorldCenter(), true);
-            gcl.isLeft = false;
+            william.isLeft = false;
         }
 
         //extra inputs
         //respawn = 0
         if (Gdx.input.isKeyJustPressed(Input.Keys.NUM_0)) {
-            william.defineWilliam();
+            william.health = 3;
+            hud.updateLives(3);
         }
         //anti grav on william
         if (Gdx.input.isKeyJustPressed(Input.Keys.SHIFT_LEFT)) {
@@ -277,6 +274,7 @@ public class GameScreen implements Screen {
             shape.setAsBox(rec.getWidth() / 2 / MyGdxGame.PPM, rec.getHeight() / 2 / MyGdxGame.PPM);
             fDef.shape = shape;
             fDef.isSensor = true;
+
             Gdx.app.log(object.getName(), object.getName());
             body.createFixture(fDef).setUserData(object.getName());
             shape.dispose();

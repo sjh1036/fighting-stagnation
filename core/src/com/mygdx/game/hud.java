@@ -2,10 +2,8 @@ package com.mygdx.game;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.audio.Music;
-import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
@@ -23,7 +21,6 @@ import com.badlogic.gdx.utils.viewport.Viewport;
 
 public class hud {
     public Stage stage;
-    private Viewport viewport;
     Label levelLabel;
     Label livesLabel;
     TextButton pauseButton;
@@ -38,8 +35,7 @@ public class hud {
 
     public hud(SpriteBatch sb, final MyGdxGame game, Music music){
 
-        viewport = new FitViewport(500,250, new OrthographicCamera());
-        stage = new Stage(viewport, sb);
+        stage = new Stage(new FitViewport(500,250, new OrthographicCamera()), sb);
         TextureAtlas atlas = new TextureAtlas(Gdx.files.internal("uiskin.atlas"));
         skin = new Skin(Gdx.files.internal("uiskin.json"), atlas);
         skin.getFont("commodore-64").getData().setScale(0.5f,0.5f);
@@ -94,15 +90,14 @@ public class hud {
     }
 
     public void updateLives(int livesRemaining){
-        //table.getCell(livesLabel).clearActor();
-        for (int i = 0; i < livesRemaining; i++) {
-            Image heartImage = new Image(new TextureRegionDrawable(new TextureRegion(heart)));
-            table.add(heartImage).size(25, 20);
-        }
-        for(int i = 0; i < 3 - livesRemaining; i ++){
-            Image empty = new Image(new TextureRegionDrawable(new TextureRegion(emptyHeart)));
-            table.add(empty).size(25, 20);
 
+        for (int i = 1; i <= livesRemaining; i++) {
+            Image heartImage = new Image(new TextureRegionDrawable(new TextureRegion(heart)));
+            table.getCells().get(i).setActor(heartImage).size(25, 20);
+        }
+        for(int i = livesRemaining + 1; i < 4; i ++){
+            Image empty = new Image(new TextureRegionDrawable(new TextureRegion(emptyHeart)));
+            table.getCells().get(i).setActor(empty).size(25, 20);
         }
 
     }
