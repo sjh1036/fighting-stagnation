@@ -78,6 +78,7 @@ public class OverlayScreen extends ScreenAdapter {
         if(type == 1) {
             optionsMenu.setScale(0.5f);
             optionsMenu.setPosition(stage.getWidth(), stage.getHeight());
+            optionsMenu.padBottom(20f);
             stage.addActor(optionsMenu);
 
         } else {
@@ -87,56 +88,6 @@ public class OverlayScreen extends ScreenAdapter {
         }
         Gdx.input.setInputProcessor(stage);
 
-    }
-
-    public void renderPauseMenu(){
-        pauseMenu = new Window("- Pause -", skin);
-        TextButton resumeButton = new TextButton("Resume", skin);
-        TextButton quitButton = new TextButton("Quit", skin);
-
-        float buttonX = (pauseMenu.getWidth() - resumeButton.getWidth() - quitButton.getWidth() - 20) / 2;
-        resumeButton.setPosition(buttonX, 30);
-        quitButton.setPosition(buttonX + resumeButton.getWidth() + 100, 30);
-
-        // Add listeners to the buttons
-        resumeButton.addListener(new ClickListener() {
-            @Override
-            public void clicked(InputEvent event, float x, float y) {
-                pauseMenu.setVisible(false);
-            }
-        });
-
-        quitButton.addListener(new ClickListener() {
-            @Override
-            public void clicked(InputEvent event, float x, float y) {
-                Gdx.app.exit();
-            }
-        });
-
-        // Add the title and buttons to the pause window
-
-
-        pauseMenu.setSize(350, 150);
-        pauseMenu.add(pauseMenu.getTitleLabel()).colspan(3).row();
-        pauseMenu.add(resumeButton).padRight(10);
-        pauseMenu.add(quitButton);
-        pauseMenu.setScale(0.7f);
-
-        // Calculate the position to center the window on the screen
-        float windowX = (Gdx.graphics.getWidth() - (pauseMenu.getWidth() * 0.7f) / 2);
-        float windowY = (Gdx.graphics.getHeight() - (pauseMenu.getHeight() * 0.7f) / 2);
-        Gdx.app.log("X, Y", "(" + windowX + ", " + windowY + ")");
-
-
-        // Set the position of the pause window
-        pauseMenu.setPosition(windowX, windowY);
-
-
-        // Add the pause window to the stage
-        stage.addActor(pauseMenu);
-
-        // Set input processor to stage to handle input events
-        Gdx.input.setInputProcessor(stage);
     }
 
     @Override

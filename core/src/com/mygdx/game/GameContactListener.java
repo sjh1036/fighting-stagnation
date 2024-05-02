@@ -1,8 +1,11 @@
 package com.mygdx.game;
 
+import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
 
+import com.badlogic.gdx.audio.Music;
 import com.badlogic.gdx.audio.Sound;
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.physics.box2d.Contact;
 import com.badlogic.gdx.physics.box2d.ContactImpulse;
 import com.badlogic.gdx.physics.box2d.ContactListener;
@@ -19,9 +22,11 @@ public class GameContactListener implements ContactListener {
     public Boolean isLeft;
     public float buckTime;
     public Sound thud;
+    public William william;
     private final GameScreen gameScreen;
+    public hud hud;
 
-    public GameContactListener(GameScreen gameScreen) {
+    public GameContactListener(GameScreen gameScreen, SpriteBatch batch, MyGdxGame game, Music music) {
         this.gameScreen = gameScreen;
         thud = Gdx.audio.newSound(Gdx.files.internal("thud.mp3"));
         inAir = true;
@@ -29,6 +34,8 @@ public class GameContactListener implements ContactListener {
         leftTouching = false;
         attacking = false;
         buckTime = 0;
+        this.hud = new hud(batch, game ,music);
+        this.william = new William(game.world, this);
     }
 
     @Override
@@ -48,12 +55,18 @@ public class GameContactListener implements ContactListener {
                 if (attacking) {
                     gameScreen.toBeDestroyed.add(other.getBody());
                 } else {
-                    gameScreen.toBeDestroyed.add(bottom.getBody());
+                    william.health--;
+                    if(william.health == 0) {
+                        gameScreen.toBeDestroyed.add(bottom.getBody());
+                    }
                 }
 
-            } else if (Objects.equals(other.getUserData(), "spikes")) {
-                gameScreen.toBeDestroyed.add(bottom.getBody());
 
+            } else if (Objects.equals(other.getUserData(), "spikes")) {
+                william.health--;
+                    if(william.health == 0) {
+                        gameScreen.toBeDestroyed.add(bottom.getBody());
+                    }
             } else {
                 thud.play(.25f);
                 inAir = false;
@@ -74,11 +87,17 @@ public class GameContactListener implements ContactListener {
                 if (isLeft && attacking) {
                     gameScreen.toBeDestroyed.add(other.getBody());
                 } else {
-                    gameScreen.toBeDestroyed.add(right.getBody());
+                    william.health--;
+                    if(william.health == 0) {
+                        gameScreen.toBeDestroyed.add(right.getBody());
+                    }
                 }
 
             } else if (Objects.equals(other.getUserData(), "spikes")) {
-                gameScreen.toBeDestroyed.add(right.getBody());
+                william.health--;
+                if(william.health == 0) {
+                    gameScreen.toBeDestroyed.add(right.getBody());
+                }
 
             } else {
                 rightTouching = true;
@@ -99,11 +118,17 @@ public class GameContactListener implements ContactListener {
                 if (!isLeft && attacking) {
                     gameScreen.toBeDestroyed.add(other.getBody());
                 } else {
-                    gameScreen.toBeDestroyed.add(left.getBody());
+                    william.health--;
+                    if(william.health == 0) {
+                        gameScreen.toBeDestroyed.add(left.getBody());
+                    }
                 }
 
             } else if (Objects.equals(other.getUserData(), "spikes")) {
-                gameScreen.toBeDestroyed.add(left.getBody());
+                william.health--;
+                if(william.health == 0) {
+                    gameScreen.toBeDestroyed.add(left.getBody());
+                }
 
             } else {
                 leftTouching = true;
@@ -120,7 +145,10 @@ public class GameContactListener implements ContactListener {
             } else if (Objects.equals(other.getUserData(), "horn")) {
 
             } else if (other.getUserData() == "hedgehog"){
-                gameScreen.toBeDestroyed.add(top.getBody());
+                william.health--;
+                if(william.health == 0) {
+                    gameScreen.toBeDestroyed.add(top.getBody());
+                }
             }
 
         }

@@ -12,37 +12,45 @@ import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.ui.Window;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
+import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
+import com.badlogic.gdx.utils.viewport.Viewport;
 
 public class GameOverScreen implements Screen {
 
     final MyGdxGame game;
     Texture backgroundTexture;
     Stage stage;
-    Music menuMusic;
+    Music music;
     OrthographicCamera camera;
+
     TextButton restart;
     TextButton quitButton;
     Window gameOverMenu;
-    Music music;
+    Viewport gamePort;
 
 
-    public GameOverScreen(final MyGdxGame game) {
+    public GameOverScreen(final MyGdxGame game, Music m) {
         this.game = game;
         this.stage = new Stage(new ScreenViewport());
         TextureAtlas atlas = new TextureAtlas(Gdx.files.internal("uiskin.atlas"));
         Skin skin = new Skin(Gdx.files.internal("uiskin.json"), atlas);
         gameOverMenu = new Window("- Game over! -", skin);
         backgroundTexture = new Texture(Gdx.files.internal("GameOverBG.png"));
-
-       music = Gdx.audio.newMusic(Gdx.files.internal("GameOverMusic.mp3"));
+        this.music = m;
+        music = Gdx.audio.newMusic(Gdx.files.internal("GameOverMusic.mp3"));
         music.setVolume(.1f);
         music.setLooping(true);
         music.play();
 
         //Set up the camera, background image and background music for the main menu
         camera = new OrthographicCamera();
-        camera.setToOrtho(false, 800, 480);
+        camera.setToOrtho(false, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+
+        // Set up the viewport
+        gamePort = new FitViewport(Gdx.graphics.getWidth(), Gdx.graphics.getHeight(), camera);
+        stage.setViewport(gamePort);
+
 
         quitButton = new TextButton("Quit", skin);
         restart = new TextButton("Restart", skin);
@@ -62,11 +70,12 @@ public class GameOverScreen implements Screen {
             }
         });
 
+        gameOverMenu.setScale(2.0f);
         gameOverMenu.add(gameOverMenu.getTitleLabel()).colspan(3).row();
         gameOverMenu.add(restart).size(150, 50).padRight(10);
         gameOverMenu.add(quitButton).size(95, 50);
-        gameOverMenu.setSize(450, 150);
-        gameOverMenu.setPosition(155, 165);
+        gameOverMenu.setSize(400, 200);
+        gameOverMenu.setPosition((gamePort.getWorldHeight()/2), (gamePort.getWorldHeight()/2) - 200);
 
         stage.addActor(gameOverMenu);
         Gdx.input.setInputProcessor(stage);
@@ -77,7 +86,7 @@ public class GameOverScreen implements Screen {
         //Render the main menu screen
         game.batch.setProjectionMatrix(camera.combined);
         game.batch.begin();
-        game.batch.draw(backgroundTexture, 0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+        game.batch.draw(backgroundTexture, 0, 0, gamePort.getWorldWidth(), gamePort.getWorldHeight());
         game.batch.end();
 
         stage.act(delta);
@@ -100,7 +109,13 @@ public class GameOverScreen implements Screen {
 
     @Override
     public void resize(int width, int height) {
-    }
+
+            gamePort.update(width, height);
+            camera.setToOrtho(false, width, height);
+            stage.getViewport().update(width, height, true);
+        }
+
+
 
     @Override
     public void show() {
@@ -113,12 +128,14 @@ public class GameOverScreen implements Screen {
 
     @Override
     public void pause() {
-        menuMusic.pause();
+        if(music.isPlaying()) {
+            music.pause();
+        }
     }
 
     @Override
     public void resume() {
-        menuMusic.play();
+        music.play();
     }
     @Override
     public void dispose() {

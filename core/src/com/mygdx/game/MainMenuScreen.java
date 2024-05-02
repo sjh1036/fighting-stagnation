@@ -3,18 +3,17 @@ package com.mygdx.game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.audio.Music;
+import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.graphics.g2d.BitmapFont;
-import com.badlogic.gdx.graphics.g2d.TextureAtlas;
-import com.badlogic.gdx.graphics.g2d.TextureRegion;
-import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
-import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
-import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
+import com.badlogic.gdx.utils.viewport.ExtendViewport;
+import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
+import com.badlogic.gdx.utils.viewport.StretchViewport;
+import com.badlogic.gdx.utils.viewport.Viewport;
 
 public class MainMenuScreen implements Screen {
 
@@ -22,72 +21,79 @@ public class MainMenuScreen implements Screen {
     Texture backgroundTexture;
     Stage stage;
     Music menuMusic;
-    BitmapFont font;
     OrthographicCamera camera;
     TextButton startButton;
     TextButton quitButton;
     TextButton optionsButton;
     OverlayScreen optionsMenu;
-
+    Viewport gamePort;
 
     public MainMenuScreen(final MyGdxGame game) {
-        Gdx.app.log("HERE", "MM HERE");
         this.game = game;
-        this.stage = new Stage(new ScreenViewport());
-        TextureAtlas atlas = new TextureAtlas(Gdx.files.internal("uiskin.atlas"));
-        Skin skin = new Skin(Gdx.files.internal("uiskin.json"), atlas);
+        this.stage = new Stage();
+        Skin skin = new Skin(Gdx.files.internal("uiskin.json"));
 
-        //Set up the camera, background image and background music for the main menu
+        // Set up the camera
         camera = new OrthographicCamera();
-        camera.setToOrtho(false, 800, 480);
+        camera.setToOrtho(false, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+
+        // Set up the viewport
+        gamePort = new StretchViewport(Gdx.graphics.getWidth(), Gdx.graphics.getHeight(), camera);
+        stage.setViewport(gamePort);
+
         backgroundTexture = new Texture(Gdx.files.internal("MenuScreenIMG.jpg"));
         menuMusic = Gdx.audio.newMusic(Gdx.files.internal("GameplayMusic.mp3"));
 
         startButton = new TextButton("Start", skin);
         quitButton = new TextButton("Quit", skin);
         optionsButton = new TextButton("Options", skin);
-        //Begin the main menu music
+
+
+        // Begin the main menu music
         menuMusic.setLooping(true);
         menuMusic.play();
 
         stage.addActor(startButton);
         stage.addActor(quitButton);
         stage.addActor(optionsButton);
-        Gdx.input.setInputProcessor(stage);
 
         startButton.setPosition(100, 200);
         startButton.setSize(110, 45);
-
 
         quitButton.setPosition(100, 150);
         quitButton.setSize(110, 45);
 
         optionsButton.setPosition(100, 100);
         optionsButton.setSize(140, 45);
+
         optionsMenu = new OverlayScreen(game, 0, this.stage);
+        Gdx.input.setInputProcessor(stage);
     }
+
     @Override
     public void render(float delta) {
-    //Render the main menu screen
+        // Render the main menu screen
         game.batch.setProjectionMatrix(camera.combined);
         game.batch.begin();
-        game.batch.draw(backgroundTexture, 0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+        game.batch.draw(backgroundTexture, 0, 0, gamePort.getWorldWidth() + 10, gamePort.getWorldHeight());
         game.batch.end();
 
         stage.act(delta);
         stage.draw();
 
-        //Handle button press (INCLUDE SOUND??)
+        // Handle button press (INCLUDE SOUND??)
         if (Gdx.input.justTouched()) {
-        // Handle start button click
+            // Handle start button click
             if (startButton.isPressed()) {
                 game.setScreen(new GameScreen(game));
                 dispose();
-        //Handle quit button click
-            } else if (quitButton.isPressed()) {
+            }
+            // Handle quit button click
+            else if (quitButton.isPressed()) {
                 Gdx.app.exit();
-        //Handle options button click
-            } else if (optionsButton.isPressed()) {
+            }
+            // Handle options button click
+            else if (optionsButton.isPressed()) {
                 optionsMenu.renderOptionsMenu(menuMusic);
             }
         }
@@ -95,32 +101,31 @@ public class MainMenuScreen implements Screen {
 
     @Override
     public void resize(int width, int height) {
+        gamePort.update(width, height); // Update the viewport
+        camera.setToOrtho(false, width, height); // Update the camera's aspect ratio
+        stage.getViewport().update(width, height, true); // Update the stage viewport
     }
 
     @Override
-    public void show() {
-
-    }
+    public void show() {}
 
     @Override
-    public void hide() {
-    }
+    public void hide() {}
 
     @Override
     public void pause() {
-    menuMusic.pause();
+        menuMusic.pause();
     }
 
     @Override
     public void resume() {
         menuMusic.play();
     }
+
     @Override
     public void dispose() {
         backgroundTexture.dispose();
         menuMusic.dispose();
         stage.dispose();
     }
-
 }
-

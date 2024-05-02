@@ -28,11 +28,13 @@ public class William extends Sprite {
     private float stateTimer;
     private final Texture willStand = new Texture(Gdx.files.internal("WillisStill.png"));
     private final GameContactListener gcl;
+    public int health;
     public William(World world, GameContactListener gcl) {
         super(new Texture(Gdx.files.internal("WillisStill.png")));
         this.world = world;
         this.gcl = gcl;
         gcl.isLeft = true;
+        this.health = 3;
 
         currentState = State.STANDING;
         previousState = State.STANDING;

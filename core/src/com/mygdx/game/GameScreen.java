@@ -57,9 +57,8 @@ public class GameScreen implements Screen {
 
         camera = new OrthographicCamera();
         camera.setToOrtho(false, 1000, 500);
-        gamePort = new FitViewport(950 / MyGdxGame.PPM, 570 / MyGdxGame.PPM, camera);
+        gamePort = new FitViewport(1000 / MyGdxGame.PPM, 570 / MyGdxGame.PPM, camera);
         stage = new Stage(gamePort,batch);
-
         map = new TmxMapLoader().load("Map1.tmx");
         renderer = new OrthogonalTiledMapRenderer(map, 1 / MyGdxGame.PPM);
         isOver = false;
@@ -75,7 +74,7 @@ public class GameScreen implements Screen {
         //creating objects for each map object
         buildMapObjects();
 
-        gcl = new GameContactListener(this);
+        gcl = new GameContactListener(this, batch,game, music);
         world.setContactListener(gcl);
 
         debugRenderer = new Box2DDebugRenderer();
@@ -97,9 +96,9 @@ public class GameScreen implements Screen {
 
     @Override
     public void render(float delta) {
-        if(william.getY() < 0f){
+        if(william.getY() < 0f || william.health == 0){
             isOver = true;
-            game.setScreen(new GameOverScreen(game));
+            game.setScreen(new GameOverScreen(game, music));
             music.stop();
             dispose();
         } else {
@@ -121,7 +120,7 @@ public class GameScreen implements Screen {
 
                 if (tbd.equals(william.body)) {
                     isOver = true;
-                    game.setScreen(new GameOverScreen(game));
+                    game.setScreen(new GameOverScreen(game,music));
                     music.stop();
                 }
                 for(Enemy e: enemies) {

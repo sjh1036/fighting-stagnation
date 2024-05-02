@@ -21,7 +21,7 @@ public class MyGdxGame extends Game {
 	public static final int V_WIDTH = 400;
 	public static final int V_HEIGHT = 200;
 	public static Viewport gamePort;
-	private World world;
+	public World world;
 
 	public ShapeRenderer shapeRenderer;
 

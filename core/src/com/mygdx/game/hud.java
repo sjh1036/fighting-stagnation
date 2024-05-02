@@ -11,6 +11,7 @@ import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.Stage;
+import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
@@ -24,25 +25,29 @@ public class hud {
     public Stage stage;
     private Viewport viewport;
     Label levelLabel;
+    Label livesLabel;
     TextButton pauseButton;
     TextButton quitButton;
-    TextButton optionsButton;
     Skin skin;
     OverlayScreen optionsMenu;
-    OverlayScreen pauseMenu;
+    Texture heart;
+    Texture emptyHeart;
+    Table table;
+
+
 
     public hud(SpriteBatch sb, final MyGdxGame game, Music music){
 
-        viewport = new FitViewport(MyGdxGame.V_WIDTH, MyGdxGame.V_HEIGHT, new OrthographicCamera());
+        viewport = new FitViewport(500,250, new OrthographicCamera());
         stage = new Stage(viewport, sb);
         TextureAtlas atlas = new TextureAtlas(Gdx.files.internal("uiskin.atlas"));
         skin = new Skin(Gdx.files.internal("uiskin.json"), atlas);
         skin.getFont("commodore-64").getData().setScale(0.5f,0.5f);
         optionsMenu = new OverlayScreen(game, 1, this.stage);
-        pauseMenu = new OverlayScreen(game, 1, this.stage);
+        heart = new Texture(Gdx.files.internal("heart.png"));
+        emptyHeart = new Texture(Gdx.files.internal("emptyheart.png"));
 
-
-        Table table = new Table();
+        table = new Table();
         table.top();
         table.setFillParent(true);
 
@@ -52,16 +57,18 @@ public class hud {
 
         // Create pause button
         pauseButton =  new TextButton("||", skin);
+        pauseButton.setSize(30, 20);
         pauseButton.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
-               pauseMenu.renderPauseMenu();
+                optionsMenu.renderOptionsMenu(music);
                game.pause();
             }
         });
 
         // Create quit button
         quitButton = new TextButton("Quit", skin);
+        quitButton.setSize(50, 20);
         quitButton.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
@@ -70,22 +77,34 @@ public class hud {
             }
         });
 
-        // Create options button
-        optionsButton = new TextButton("*", skin);
-        optionsButton.addListener(new ClickListener() {
-            @Override
-            public void clicked(InputEvent event, float x, float y) {
-               optionsMenu.renderOptionsMenu(music);
-            }
-        });
+
+        livesLabel =  new Label("Lives: ", skin);
+        table.add(livesLabel);
+        for (int i = 0; i < 3; i++) {
+            Image heartImage = new Image(new TextureRegionDrawable(new TextureRegion(heart)));
+            table.add(heartImage).size(25, 20);
+        }
 
 
         table.add(levelLabel).expandX().pad(0,240,0,0);
         table.add(pauseButton).expandX().width(30).height(20);
         table.add(quitButton).expandX().width(50).height(20);
-        table.add(optionsButton).expandX().width(30).height(20);
 
         stage.addActor(table);
+    }
+
+    public void updateLives(int livesRemaining){
+        //table.getCell(livesLabel).clearActor();
+        for (int i = 0; i < livesRemaining; i++) {
+            Image heartImage = new Image(new TextureRegionDrawable(new TextureRegion(heart)));
+            table.add(heartImage).size(25, 20);
+        }
+        for(int i = 0; i < 3 - livesRemaining; i ++){
+            Image empty = new Image(new TextureRegionDrawable(new TextureRegion(emptyHeart)));
+            table.add(empty).size(25, 20);
+
+        }
+
     }
 
     public void dispose() {
