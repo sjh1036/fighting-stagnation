@@ -65,7 +65,7 @@ public class GameScreen implements Screen {
 
         camera = new OrthographicCamera();
         camera.setToOrtho(false, 960, 540);
-        gamePort = new FitViewport(960 / MyGdxGame.PPM, 540 / MyGdxGame.PPM, camera);
+        gamePort = new StretchViewport(960 / MyGdxGame.PPM, 540 / MyGdxGame.PPM, camera);
         stage = new Stage(gamePort,batch);
         map = new TmxMapLoader().load("Map1.tmx");
         renderer = new OrthogonalTiledMapRenderer(map, 1 / MyGdxGame.PPM);
@@ -84,7 +84,7 @@ public class GameScreen implements Screen {
         buildMapObjects();
 
         debugRenderer = new Box2DDebugRenderer();
-        hud = new hud(batch, this.game,music);
+        hud = new hud(batch, this.game,music,gamePort);
         Gdx.input.setInputProcessor(hud.stage);
 
         //creation of william and enemies
@@ -114,7 +114,8 @@ public class GameScreen implements Screen {
         if(william.getY() < 0f || william.health <= 0) {
             endGame(new GameOverScreen(game, music));
         } else if (won) {
-            endGame(new WinScreen(game, music));
+            endGame(new WinScreen(game));
+            music.stop();
         } else {
             gcl.buck(delta);
             handleInput(delta);

@@ -30,15 +30,14 @@ public class WinScreen implements Screen {
     Viewport gamePort;
 
 
-    public WinScreen(final MyGdxGame game, Music m) {
+    public WinScreen(final MyGdxGame game) {
         this.game = game;
         this.stage = new Stage(new ScreenViewport());
         TextureAtlas atlas = new TextureAtlas(Gdx.files.internal("uiskin.atlas"));
         Skin skin = new Skin(Gdx.files.internal("uiskin.json"), atlas);
         gameOverMenu = new Window("- You Win! -", skin);
-        backgroundTexture = new Texture(Gdx.files.internal("GameOverBG.png"));
-        this.music = m;
-        music = Gdx.audio.newMusic(Gdx.files.internal("GameplayMusic.mp3"));
+        backgroundTexture = new Texture(Gdx.files.internal("WinScreen.jpg"));
+        music = Gdx.audio.newMusic(Gdx.files.internal("winMusic.mp3"));
         music.setVolume(.1f);
         music.setLooping(true);
         music.play();

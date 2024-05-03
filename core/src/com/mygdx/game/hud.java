@@ -20,6 +20,9 @@ import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.scenes.scene2d.utils.Drawable;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.viewport.FitViewport;
+import com.badlogic.gdx.utils.viewport.Viewport;
+
+import javax.swing.text.View;
 
 public class hud {
     public Stage stage;
@@ -34,7 +37,8 @@ public class hud {
     Texture emptyHeart;
     Table table;
     MyGdxGame currGame;
-    public hud(SpriteBatch sb, final MyGdxGame game, Music music){
+    Viewport vp;
+    public hud(SpriteBatch sb, final MyGdxGame game, Music music, Viewport vp){
 
         stage = new Stage(new FitViewport(500,250, new OrthographicCamera()), sb);
         TextureAtlas atlas = new TextureAtlas(Gdx.files.internal("uiskin.atlas"));
@@ -44,6 +48,8 @@ public class hud {
         heart = new Texture(Gdx.files.internal("heart.png"));
         emptyHeart = new Texture(Gdx.files.internal("emptyheart.png"));
         optionsMenu.setMenuMovable(false);
+        this.vp = vp;
+
         this.currGame = game;
 
         table = new Table();
@@ -57,25 +63,11 @@ public class hud {
         // Create pause button
         pauseButton =  new TextButton("||", skin);
         pauseButton.setSize(30, 20);
-        pauseButton.addListener(new ClickListener() {
-            @Override
-            public void clicked(InputEvent event, float x, float y) {
-                optionsMenu.renderOptionsMenu(music);
-                game.pause();
-            }
-        });
+
 
         // Create quit button
         quitButton = new TextButton("Quit", skin);
         quitButton.setSize(50, 20);
-        quitButton.addListener(new ClickListener() {
-            @Override
-            public void clicked(InputEvent event, float x, float y) {
-                game.setScreen(new MainMenuScreen(game));
-                music.stop();
-            }
-        });
-
 
         livesLabel =  new Label("Lives: ", skin);
         table.add(livesLabel);
@@ -88,6 +80,20 @@ public class hud {
         table.add(levelLabel).expandX().pad(0,240,0,0);
         table.add(pauseButton).expandX().width(30).height(20);
         table.add(quitButton).expandX().width(50).height(20);
+        pauseButton.addListener(new ClickListener() {
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+                optionsMenu.renderOptionsMenu(music);
+                game.pause();
+            }
+        });
+        quitButton.addListener(new ClickListener() {
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+                game.setScreen(new MainMenuScreen(game));
+                music.stop();
+            }
+        });
 
         stage.addActor(table);
     }
@@ -122,7 +128,7 @@ public class hud {
         muteButton.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
-                //HERE
+               //Here
             }
         });
 

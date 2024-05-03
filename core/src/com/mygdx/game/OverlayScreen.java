@@ -41,7 +41,7 @@ public class OverlayScreen extends ScreenAdapter {
         Drawable musicOff = skin.getDrawable("music-off");
         this.music = music;
         menu.setMovable(false);
-        menu.setSize(300, 300);
+        menu.setSize(300, 320);
 
         // Create buttons and add them to the options window
         TextButton closeButton = new TextButton("Close", skin);
@@ -78,7 +78,8 @@ public class OverlayScreen extends ScreenAdapter {
 
         if(type == 1) {
             menu.setScale(0.5f);
-            menu.setPosition(stage.getWidth(), stage.getHeight());
+           menu.setPosition((Gdx.graphics.getWidth() - menu.getWidth()) / 2,
+                    ((Gdx.graphics.getHeight() - menu.getHeight()) / 2 - 100));
             menu.padBottom(20f);
             stage.addActor(menu);
 
