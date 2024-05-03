@@ -26,7 +26,7 @@ public class OverlayScreen extends ScreenAdapter {
     Viewport gameport;
 
 
-    public OverlayScreen(MyGdxGame game, int type, Stage stage, Viewport gameport) {
+    public OverlayScreen(MyGdxGame game, int type, Stage stage) {
         this.game = game;
        // gameport = new FitViewport(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         this.type = type;

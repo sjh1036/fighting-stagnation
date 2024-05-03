@@ -9,33 +9,37 @@ import com.badlogic.gdx.physics.box2d.FixtureDef;
 import com.badlogic.gdx.physics.box2d.PolygonShape;
 import com.badlogic.gdx.utils.Array;
 
-public class Hedgehog extends Enemy {
-
+public class Fox extends Enemy {
     private float stateTime;
     private final Animation<TextureRegion> walkAni;
-
-
-    public Hedgehog(GameScreen gameScreen, float x, float y, float leftBound, float rightBound) {
-        super(gameScreen, x, y, leftBound, rightBound);
-
+    public Fox(GameScreen gameScreen, float spawnX, float spawnY, float leftBound, float rightBound) {
+        super(gameScreen, spawnX, spawnY, leftBound, rightBound);
         Array<TextureRegion> frames = new Array<>();
-        for (int i = 0; i < 4; i++) {
-            Texture hedgeWalk = new Texture(Gdx.files.internal("hedgehogSprite.png"));
-            frames.add(new TextureRegion(hedgeWalk, i * 1028, 0, 1028, 579));
+        Texture foxWalk = new Texture(Gdx.files.internal("FoxWalk.png"));
+        for (int i = 0; i < 5; i++) {
+            frames.add(new TextureRegion(foxWalk, i * 480, 0, 480, 480));
         }
-        walkAni = new Animation<>(0.2f, frames);
+        for (int i = 0; i < 5; i++) {
+            frames.add(new TextureRegion(foxWalk, i * 480, 480, 480, 480));
+        }
+        for (int i = 0; i < 2; i++) {
+            frames.add(new TextureRegion(foxWalk, i * 480, 960, 480, 480));
+        }
+
+        walkAni = new Animation<>(0.1f, frames);
         stateTime = 0;
-        setSize(128.5f / MyGdxGame.PPM, 72.375f / MyGdxGame.PPM);
+        setSize(100 / MyGdxGame.PPM, 100 / MyGdxGame.PPM);
 
     }
+
     @Override
     public void update(float delta) {
         if (!isDestroyed) {
             TextureRegion region = walkAni.getKeyFrame(stateTime, true);
             stateTime += delta;
-            float speed = 1.6f;
+            float speed = 2.4f;
 
-            setPosition(body.getPosition().x - getWidth() / 2, body.getPosition().y - getHeight() / 2);
+            setPosition(body.getPosition().x - getWidth() / 2, body.getPosition().y - getHeight() / 4);
 
             if (!isLeft) {
                 body.setLinearVelocity(speed, body.getLinearVelocity().y);
@@ -57,8 +61,8 @@ public class Hedgehog extends Enemy {
 
             setRegion(region);
         }
-    }
 
+    }
 
     @Override
     protected void defineEnemy(float x, float y) {
@@ -66,13 +70,14 @@ public class Hedgehog extends Enemy {
         bdef.position.set(x / MyGdxGame.PPM, y / MyGdxGame.PPM);
         bdef.type = BodyDef.BodyType.DynamicBody;
         body = world.createBody(bdef);
-        body.setUserData("hedgehog");
+        body.setUserData("fox");
 
         FixtureDef fdef = new FixtureDef();
         PolygonShape shape = new PolygonShape();
-        shape.setAsBox(25 / MyGdxGame.PPM, 20 / MyGdxGame.PPM);
+        shape.setAsBox(40 / MyGdxGame.PPM, 20 / MyGdxGame.PPM);
 
         fdef.shape = shape;
-        body.createFixture(fdef).setUserData("hedgehog");
+        body.createFixture(fdef).setUserData("fox");
+
     }
 }

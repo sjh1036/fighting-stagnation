@@ -3,15 +3,11 @@ package com.mygdx.game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.audio.Music;
-import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
-import com.badlogic.gdx.utils.viewport.ExtendViewport;
-import com.badlogic.gdx.utils.viewport.FitViewport;
-import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.badlogic.gdx.utils.viewport.StretchViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
@@ -52,6 +48,7 @@ public class MainMenuScreen implements Screen {
 
         // Begin the main menu music
         menuMusic.setLooping(true);
+        menuMusic.setVolume(.85f);
         menuMusic.play();
 
         stage.addActor(startButton);
@@ -67,7 +64,7 @@ public class MainMenuScreen implements Screen {
         optionsButton.setPosition(100, 200);
         optionsButton.setSize(250, 90);
 
-        optionsMenu = new OverlayScreen(game, 0, this.stage, gamePort);
+        optionsMenu = new OverlayScreen(game, 0, this.stage);
         Gdx.input.setInputProcessor(stage);
     }
 

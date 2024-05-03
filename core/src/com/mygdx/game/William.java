@@ -1,6 +1,7 @@
 package com.mygdx.game;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.Sprite;
@@ -25,22 +26,38 @@ public class William extends Sprite {
     private final Animation<TextureRegion> willJump;
     private final Animation<TextureRegion> willBuck;
     private final Animation<TextureRegion> willFall;
+    public boolean inAir;
+    public boolean rightTouching;
+    public boolean leftTouching;
+    public boolean attacking;
+    public Boolean isLeft;
+    public float buckTime;
     private float stateTimer;
     private final Texture willStand = new Texture(Gdx.files.internal("WillisStill.png"));
-    private final GameContactListener gcl;
+    private final GameScreen gameScreen;
+    private final Sound hurt;
     public int health;
-    public William(World world, GameContactListener gcl) {
+    public William(World world, GameScreen gameScreen) {
         super(new Texture(Gdx.files.internal("WillisStill.png")));
         this.world = world;
-        this.gcl = gcl;
-        gcl.isLeft = true;
+        this.gameScreen = gameScreen;
         this.health = 3;
 
+        isLeft = false;
+        inAir = true;
+        rightTouching = false;
+        leftTouching = false;
+        attacking = false;
+        buckTime = 0;
+
+        hurt = Gdx.audio.newSound(Gdx.files.internal("hurtsound.mp3"));
         currentState = State.STANDING;
         previousState = State.STANDING;
         stateTimer = 0;
         Array<TextureRegion> frames = new Array<>();
         Texture walkAni = new Texture(Gdx.files.internal("WillWalks.png"));
+
+        //walking
         for (int i = 0; i < 5; i++) {
             frames.add(new TextureRegion(walkAni, i * 480, 0, 480, 480));
         }
@@ -55,6 +72,8 @@ public class William extends Sprite {
         }
         willRun = new Animation<>(.1f, frames);
         frames.clear();
+
+        //jumping
         Texture jumpAni = new Texture(Gdx.files.internal("jumping.png"));
         for (int i = 0; i < 5; i++) {
             frames.add(new TextureRegion(jumpAni, i * 480, 0, 480, 480));
@@ -64,6 +83,8 @@ public class William extends Sprite {
         }
         willJump = new Animation<>(.1f, frames);
         frames.clear();
+
+        //bucking
         Texture buckAni = new Texture((Gdx.files.internal("buck-sprite.png")));
         for (int i = 0; i < 5; i++) {
             frames.add(new TextureRegion(buckAni, i * 480, 0, 480, 480));
@@ -72,8 +93,9 @@ public class William extends Sprite {
             frames.add(new TextureRegion(buckAni, i * 480, 480, 480, 480));
         }
         willBuck = new Animation<>(.05f, frames);
-
         frames.clear();
+
+        //falling
         for (int i = 3; i < 5; i++) {
             frames.add(new TextureRegion(jumpAni, i * 480, 480, 480, 480));
         }
@@ -108,7 +130,7 @@ public class William extends Sprite {
                 region = willBuck.getKeyFrame(stateTimer, false);
                 if (willBuck.isAnimationFinished(stateTimer)) {
                     currentState = State.STANDING;
-                    gcl.attacking = false;
+                    attacking = false;
                 }
                 break;
             case FALLING:
@@ -120,19 +142,19 @@ public class William extends Sprite {
         }
 
         // Flip the texture region if necessary
-        if ((gcl.isLeft) && region.isFlipX()) {
+        if ((isLeft) && region.isFlipX()) {
             region.flip(true, false);
-        } else if ((!gcl.isLeft) && !region.isFlipX()) {
+        } else if ((!isLeft) && !region.isFlipX()) {
             region.flip(true, false);
         }
 
         return region;
     }
     public State getState() {
-        if (gcl.attacking) {
+        if (attacking) {
             return State.BUCKING;
         }
-        if (!gcl.inAir) {
+        if (!inAir) {
             if (body.getLinearVelocity().x < -.1 || body.getLinearVelocity().x > .1) {
                 return State.RUNNING;
             }
@@ -164,10 +186,10 @@ public class William extends Sprite {
 
         FixtureDef fdef = new FixtureDef();
         PolygonShape shape = new PolygonShape();
-        shape.setAsBox(40 / MyGdxGame.PPM, 40 / MyGdxGame.PPM);
+        shape.setAsBox(35 / MyGdxGame.PPM, 40 / MyGdxGame.PPM);
 
         fdef.shape = shape;
-        body.createFixture(fdef);
+        body.createFixture(fdef).setUserData("william");
 
         makeSensors();
     }
@@ -176,30 +198,35 @@ public class William extends Sprite {
         FixtureDef fdef = new FixtureDef();
 
         EdgeShape bottom = new EdgeShape();
-        bottom.set(new Vector2(-39 / MyGdxGame.PPM, -41 / MyGdxGame.PPM), new Vector2(39 / MyGdxGame.PPM, -41 / MyGdxGame.PPM));
+        bottom.set(new Vector2(-34 / MyGdxGame.PPM, -41 / MyGdxGame.PPM), new Vector2(34 / MyGdxGame.PPM, -41 / MyGdxGame.PPM));
         fdef.shape = bottom;
         fdef.isSensor = true;
         body.createFixture(fdef).setUserData("bottom");
 
         EdgeShape top = new EdgeShape();
-        top.set(new Vector2(-39 / MyGdxGame.PPM, 40 / MyGdxGame.PPM), new Vector2(39 / MyGdxGame.PPM, 40 / MyGdxGame.PPM));
+        top.set(new Vector2(-34 / MyGdxGame.PPM, 41 / MyGdxGame.PPM), new Vector2(34 / MyGdxGame.PPM, 41 / MyGdxGame.PPM));
         fdef.shape = top;
         fdef.isSensor = true;
         body.createFixture(fdef).setUserData("top");
 
         EdgeShape left = new EdgeShape();
-        left.set(new Vector2(-40 / MyGdxGame.PPM, -39 / MyGdxGame.PPM), new Vector2(-40 / MyGdxGame.PPM, 39 / MyGdxGame.PPM));
+        left.set(new Vector2(-38 / MyGdxGame.PPM, -39 / MyGdxGame.PPM), new Vector2(-38 / MyGdxGame.PPM, 39 / MyGdxGame.PPM));
         fdef.shape = left;
         fdef.isSensor = true;
         body.createFixture(fdef).setUserData("left");
 
         EdgeShape right = new EdgeShape();
-        right.set(new Vector2(40 / MyGdxGame.PPM, -39 / MyGdxGame.PPM), new Vector2(40 / MyGdxGame.PPM, 39 / MyGdxGame.PPM));
+        right.set(new Vector2(38 / MyGdxGame.PPM, -39 / MyGdxGame.PPM), new Vector2(38 / MyGdxGame.PPM, 39 / MyGdxGame.PPM));
         fdef.shape = right;
         fdef.isSensor = true;
         body.createFixture(fdef).setUserData("right");
     }
-
+    public void takeDamage() {
+        health--;
+        hurt.play();
+        body.setLinearVelocity(new Vector2(body.getLinearVelocity().x, 10));
+        gameScreen.hud.updateLives(health);
+    }
 
 
 }
