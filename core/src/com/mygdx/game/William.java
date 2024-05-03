@@ -26,14 +26,22 @@ public class William extends Sprite {
     private final Animation<TextureRegion> willJump;
     private final Animation<TextureRegion> willBuck;
     private final Animation<TextureRegion> willFall;
+    private final Animation<TextureRegion> willHurtRun;
+    private final Animation<TextureRegion> willHurtJump;
+    private final Animation<TextureRegion> willHurtBuck;
+    private final Animation<TextureRegion> willHurtFall;
+
     public boolean inAir;
     public boolean rightTouching;
     public boolean leftTouching;
     public boolean attacking;
-    public Boolean isLeft;
+    public boolean isLeft;
+    public boolean isHurt;
+    public float hurtTime;
     public float buckTime;
     private float stateTimer;
     private final Texture willStand = new Texture(Gdx.files.internal("WillisStill.png"));
+    private final Texture willHurtStand = new Texture(Gdx.files.internal("WillisStillOw.png"));
     private final GameScreen gameScreen;
     private final Sound hurt;
     public int health;
@@ -49,6 +57,8 @@ public class William extends Sprite {
         leftTouching = false;
         attacking = false;
         buckTime = 0;
+        isHurt = false;
+        hurtTime = 0;
 
         hurt = Gdx.audio.newSound(Gdx.files.internal("hurtsound.mp3"));
         currentState = State.STANDING;
@@ -73,6 +83,25 @@ public class William extends Sprite {
         willRun = new Animation<>(.1f, frames);
         frames.clear();
 
+        Texture hurtWalkAni = new Texture(Gdx.files.internal("WillWalksOw.png"));
+
+        //walking
+        for (int i = 0; i < 5; i++) {
+            frames.add(new TextureRegion(hurtWalkAni, i * 480, 0, 480, 480));
+        }
+        for (int i = 0; i < 5; i++) {
+            frames.add(new TextureRegion(hurtWalkAni, i * 480, 480, 480, 480));
+        }
+        for (int i = 0; i < 5; i++) {
+            frames.add(new TextureRegion(hurtWalkAni, i * 480, 960, 480, 480));
+        }
+        for (int i = 0; i < 4; i++) {
+            frames.add(new TextureRegion(hurtWalkAni, i * 480, 1440, 480, 480));
+        }
+        willHurtRun = new Animation<>(.1f, frames);
+        frames.clear();
+
+
         //jumping
         Texture jumpAni = new Texture(Gdx.files.internal("jumping.png"));
         for (int i = 0; i < 5; i++) {
@@ -82,6 +111,17 @@ public class William extends Sprite {
             frames.add(new TextureRegion(jumpAni, i * 480, 480, 480, 480));
         }
         willJump = new Animation<>(.1f, frames);
+        frames.clear();
+
+        //jumping
+        Texture jumpHurtAni = new Texture(Gdx.files.internal("jumpingow.png"));
+        for (int i = 0; i < 5; i++) {
+            frames.add(new TextureRegion(jumpHurtAni, i * 480, 0, 480, 480));
+        }
+        for (int i = 0; i < 5; i++) {
+            frames.add(new TextureRegion(jumpHurtAni, i * 480, 480, 480, 480));
+        }
+        willHurtJump = new Animation<>(.1f, frames);
         frames.clear();
 
         //bucking
@@ -95,11 +135,31 @@ public class William extends Sprite {
         willBuck = new Animation<>(.05f, frames);
         frames.clear();
 
+        //bucking
+        Texture buckHurtAni = new Texture((Gdx.files.internal("buck-spriteow.png")));
+        for (int i = 0; i < 5; i++) {
+            frames.add(new TextureRegion(buckHurtAni, i * 480, 0, 480, 480));
+        }
+        for (int i = 0; i < 4; i++) {
+            frames.add(new TextureRegion(buckHurtAni, i * 480, 480, 480, 480));
+        }
+        willHurtBuck = new Animation<>(.05f, frames);
+        frames.clear();
+
         //falling
         for (int i = 3; i < 5; i++) {
             frames.add(new TextureRegion(jumpAni, i * 480, 480, 480, 480));
         }
         willFall = new Animation<>(.1f, frames);
+        frames.clear();
+
+        //falling
+        for (int i = 3; i < 5; i++) {
+            frames.add(new TextureRegion(jumpHurtAni, i * 480, 480, 480, 480));
+        }
+        willHurtFall = new Animation<>(.1f, frames);
+        frames.clear();
+
         drawWilliam();
         defineWilliam();
     }
@@ -121,23 +181,47 @@ public class William extends Sprite {
 
         switch (currentState) {
             case RUNNING:
-                region = willRun.getKeyFrame(stateTimer, true);
+                if (!isHurt) {
+                    region = willRun.getKeyFrame(stateTimer, true);
+                } else {
+                    region = willHurtRun.getKeyFrame(stateTimer, true);
+                }
                 break;
             case JUMPING:
-                region = willJump.getKeyFrame(stateTimer, false);
+                if (!isHurt) {
+                    region = willJump.getKeyFrame(stateTimer, false);
+                } else {
+                    region = willHurtJump.getKeyFrame(stateTimer, false);
+                }
                 break;
             case BUCKING:
-                region = willBuck.getKeyFrame(stateTimer, false);
-                if (willBuck.isAnimationFinished(stateTimer)) {
-                    currentState = State.STANDING;
-                    attacking = false;
+                if (!isHurt) {
+                    region = willBuck.getKeyFrame(stateTimer, false);
+                    if (willBuck.isAnimationFinished(stateTimer)) {
+                        currentState = State.STANDING;
+                        attacking = false;
+                    }
+                } else {
+                    region = willHurtBuck.getKeyFrame(stateTimer, false);
+                    if (willHurtBuck.isAnimationFinished(stateTimer)) {
+                        currentState = State.STANDING;
+                        attacking = false;
+                    }
                 }
                 break;
             case FALLING:
-                region = willFall.getKeyFrame(stateTimer);
+                if (!isHurt) {
+                    region = willFall.getKeyFrame(stateTimer);
+                } else {
+                    region = willHurtFall.getKeyFrame(stateTimer);
+                }
                 break;
             default:
-                region = new TextureRegion(willStand); // Default to stand texture
+                if (!isHurt) {
+                    region = new TextureRegion(willStand); // Default to stand texture
+                } else {
+                    region = new TextureRegion(willHurtStand); // Default to stand texture
+                }
                 break;
         }
 

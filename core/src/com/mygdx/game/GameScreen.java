@@ -117,7 +117,7 @@ public class GameScreen implements Screen {
             endGame(new WinScreen(game));
             music.stop();
         } else {
-            gcl.buck(delta);
+            gcl.time(delta);
             handleInput(delta);
             william.update(delta);
             updateEnemies(delta);
@@ -211,18 +211,18 @@ public class GameScreen implements Screen {
 
         //extra inputs
         //respawn = 0
-        if (Gdx.input.isKeyJustPressed(Input.Keys.NUM_0)) {
-            william.health = 3;
-            hud.updateLives(3);
-        }
-        //anti grav on william
-        if (Gdx.input.isKeyJustPressed(Input.Keys.SHIFT_LEFT)) {
-            world.setGravity(new Vector2(0, -gravity));
-        }
-        //grav on william
-        if (Gdx.input.isKeyJustPressed(Input.Keys.CONTROL_LEFT)) {
-            world.setGravity(new Vector2(0, gravity));
-        }
+//        if (Gdx.input.isKeyJustPressed(Input.Keys.NUM_0)) {
+//            william.health = 3;
+//            hud.updateLives(3);
+//        }
+//        //anti grav on william
+//        if (Gdx.input.isKeyJustPressed(Input.Keys.SHIFT_LEFT)) {
+//            world.setGravity(new Vector2(0, -gravity));
+//        }
+//        //grav on william
+//        if (Gdx.input.isKeyJustPressed(Input.Keys.CONTROL_LEFT)) {
+//            world.setGravity(new Vector2(0, gravity));
+//        }
 
     }
     private void drawCollectables(SpriteBatch batch) {

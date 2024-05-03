@@ -17,7 +17,7 @@ public class GameContactListener implements ContactListener {
     public Sound wisp;
     public William william;
     private final GameScreen gameScreen;
-
+    public float delta;
 
     public GameContactListener(GameScreen gameScreen) {
         this.gameScreen = gameScreen;
@@ -37,7 +37,8 @@ public class GameContactListener implements ContactListener {
             Fixture other = fixA.getUserData() == "william" ? fixB : fixA;
 
             if (Objects.equals(other.getUserData(), "hedgehog") || Objects.equals(other.getUserData(), "fox")){
-                if (!(william.attacking && (william.rightTouching || william.leftTouching))) {
+                if (!(william.attacking && (william.rightTouching || william.leftTouching)) && !william.isHurt) {
+                    william.hurtTime = delta;
                     william.takeDamage();
                 }
 
@@ -119,9 +120,13 @@ public class GameContactListener implements ContactListener {
 
     }
 
-    public void buck(float delta) {
+    public void time(float delta) {
+        this.delta = delta;
         if (delta > william.buckTime + .04f) {
             william.attacking = false;
+        }
+        if (delta > william.hurtTime + .04f) {
+            william.isHurt = false;
         }
     }
 

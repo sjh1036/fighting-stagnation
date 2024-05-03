@@ -48,7 +48,7 @@ public class MainMenuScreen implements Screen {
 
         // Begin the main menu music
         menuMusic.setLooping(true);
-        menuMusic.setVolume(.85f);
+        menuMusic.setVolume(.4f);
         menuMusic.play();
 
         stage.addActor(startButton);
