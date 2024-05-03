@@ -109,11 +109,10 @@ public class GameOverScreen implements Screen {
 
     @Override
     public void resize(int width, int height) {
-
             gamePort.update(width, height);
             camera.setToOrtho(false, width, height);
             stage.getViewport().update(width, height, true);
-        }
+    }
 
 
 

@@ -28,12 +28,15 @@ import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.ScreenUtils;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.utils.viewport.FitViewport;
+import com.badlogic.gdx.utils.viewport.ScreenViewport;
+import com.badlogic.gdx.utils.viewport.StretchViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
 
 public class GameScreen implements Screen {
     public static final float gravity = -18;
     public World world;
+    public boolean isPaused;
     private final MyGdxGame game;
     private final OrthographicCamera camera;
     private final Viewport gamePort;
@@ -51,13 +54,14 @@ public class GameScreen implements Screen {
     public Array<Body> toBeDestroyed;
     public GameScreen(final MyGdxGame game) {
         this.game = game;
+        isPaused = false;
 
         //Set camera and load map
         batch = new SpriteBatch();
 
         camera = new OrthographicCamera();
         camera.setToOrtho(false, 1000, 500);
-        gamePort = new FitViewport(1000 / MyGdxGame.PPM, 570 / MyGdxGame.PPM, camera);
+        gamePort = new StretchViewport(1000 / MyGdxGame.PPM, 600 / MyGdxGame.PPM, camera);
         stage = new Stage(gamePort,batch);
         map = new TmxMapLoader().load("Map1.tmx");
         renderer = new OrthogonalTiledMapRenderer(map, 1 / MyGdxGame.PPM);
@@ -96,20 +100,20 @@ public class GameScreen implements Screen {
 
     @Override
     public void render(float delta) {
-        if(william.getY() < 0f || william.health == 0){
-            isOver = true;
-            game.setScreen(new GameOverScreen(game, music));
-            music.stop();
-            dispose();
-        } else {
-            gcl.buck(delta);
-            handleInput(delta);
-            william.update(delta);
-            updateEnemies(delta);
-            renderGame(delta);
-            hud.stage.act(delta);
-            hud.stage.draw();
-        }
+            if (william.getY() < 0f || william.health == 0) {
+                isOver = true;
+                game.setScreen(new GameOverScreen(game, music));
+                music.stop();
+                dispose();
+            } else {
+                gcl.buck(delta);
+                handleInput(delta);
+                william.update(delta);
+                updateEnemies(delta);
+                renderGame(delta);
+            }
+        hud.stage.act(delta);
+        hud.stage.draw();
     }
 
     // Method for rendering the game

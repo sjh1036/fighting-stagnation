@@ -32,6 +32,7 @@ public class MainMenuScreen implements Screen {
         this.game = game;
         this.stage = new Stage();
         Skin skin = new Skin(Gdx.files.internal("uiskin.json"));
+        skin.getFont("commodore-64").getData().setScale(2f);
 
         // Set up the camera
         camera = new OrthographicCamera();
@@ -57,16 +58,16 @@ public class MainMenuScreen implements Screen {
         stage.addActor(quitButton);
         stage.addActor(optionsButton);
 
-        startButton.setPosition(100, 200);
-        startButton.setSize(110, 45);
+        startButton.setPosition(100, 400);
+        startButton.setSize(220, 90);
 
-        quitButton.setPosition(100, 150);
-        quitButton.setSize(110, 45);
+        quitButton.setPosition(100, 300);
+        quitButton.setSize(220, 90);
 
-        optionsButton.setPosition(100, 100);
-        optionsButton.setSize(140, 45);
+        optionsButton.setPosition(100, 200);
+        optionsButton.setSize(250, 90);
 
-        optionsMenu = new OverlayScreen(game, 0, this.stage);
+        optionsMenu = new OverlayScreen(game, 0, this.stage, gamePort);
         Gdx.input.setInputProcessor(stage);
     }
 
@@ -95,6 +96,7 @@ public class MainMenuScreen implements Screen {
             // Handle options button click
             else if (optionsButton.isPressed()) {
                 optionsMenu.renderOptionsMenu(menuMusic);
+
             }
         }
     }

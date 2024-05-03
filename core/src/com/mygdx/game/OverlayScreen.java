@@ -1,11 +1,9 @@
 package com.mygdx.game;
 
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.ScreenAdapter;
 import com.badlogic.gdx.audio.Music;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
-import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.ImageButton;
@@ -14,6 +12,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.ui.Window;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.scenes.scene2d.utils.Drawable;
+import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
 public class OverlayScreen extends ScreenAdapter {
@@ -21,26 +20,28 @@ public class OverlayScreen extends ScreenAdapter {
     private final MyGdxGame game;
     private final Stage stage;
     public int type;
-    Window optionsMenu;
-    Window pauseMenu;
+    Window menu;
     Skin skin;
     Music music;
+    Viewport gameport;
 
 
-    public OverlayScreen(MyGdxGame game, int type, Stage stage) {
+    public OverlayScreen(MyGdxGame game, int type, Stage stage, Viewport gameport) {
         this.game = game;
+       // gameport = new FitViewport(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         this.type = type;
         this.stage = stage;
         TextureAtlas atlas = new TextureAtlas(Gdx.files.internal("uiskin.atlas"));
         this.skin =  new Skin(Gdx.files.internal("uiskin.json"), atlas);
+        menu = new Window("- Options -", skin);
     }
 
     public void renderOptionsMenu(Music music){
-        optionsMenu = new Window("- Options -", skin);
         Drawable musicOn = skin.getDrawable("music");
         Drawable musicOff = skin.getDrawable("music-off");
         this.music = music;
-        optionsMenu.setSize(300, 300);
+        menu.setMovable(false);
+        menu.setSize(300, 300);
 
         // Create buttons and add them to the options window
         TextButton closeButton = new TextButton("Close", skin);
@@ -50,7 +51,7 @@ public class OverlayScreen extends ScreenAdapter {
         closeButton.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
-                optionsMenu.setVisible(false);
+               menu.setVisible(false);
             }
         });
 
@@ -69,22 +70,24 @@ public class OverlayScreen extends ScreenAdapter {
         });
 
 
-        optionsMenu.add("- Options -").pad(15).row();
+        menu.add("- Options -").pad(15).row();
 
-        optionsMenu.add(closeButton).pad(15).row();
-        optionsMenu.add(quitButton).pad(15).row();
-        optionsMenu.add(muteButton).pad(15).row();
-        
+        menu.add(closeButton).pad(15).row();
+        menu.add(quitButton).pad(15).row();
+        menu.add(muteButton).pad(15).row();
+
         if(type == 1) {
-            optionsMenu.setScale(0.5f);
-            optionsMenu.setPosition(stage.getWidth(), stage.getHeight());
-            optionsMenu.padBottom(20f);
-            stage.addActor(optionsMenu);
+            menu.setScale(0.5f);
+            menu.setPosition(stage.getWidth(), stage.getHeight());
+            menu.padBottom(20f);
+            stage.addActor(menu);
 
         } else {
-            optionsMenu.setPosition((Gdx.graphics.getWidth() - optionsMenu.getWidth()) / 2,
-                    (Gdx.graphics.getHeight() - optionsMenu.getHeight()) / 2);
-            stage.addActor(optionsMenu);
+            menu.setScale(1.3f);
+            menu.setPosition((Gdx.graphics.getWidth() - menu.getWidth()) / 2,
+                    ((Gdx.graphics.getHeight() - menu.getHeight()) / 2 - 100));
+
+            stage.addActor(menu);
         }
         Gdx.input.setInputProcessor(stage);
 
@@ -92,7 +95,6 @@ public class OverlayScreen extends ScreenAdapter {
 
     @Override
     public void render(float delta) {
-        // Clear the screen
         stage.act(Math.min(Gdx.graphics.getDeltaTime(), 1 / 30f));
         stage.draw();
     }
@@ -106,11 +108,14 @@ public class OverlayScreen extends ScreenAdapter {
             button.getStyle().up = musicOffDrawable;
         } else{
             music.play();
-            button.getStyle().down = musicOnDrawable;
+            button.getStyle().up = musicOnDrawable;
 
         }
     }
 
+    public void setMenuMovable(boolean movable) {
+        menu.setMovable(movable);
+    }
     @Override
     public void resize(int width, int height) {
         stage.getViewport().update(width, height, true);
