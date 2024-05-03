@@ -30,6 +30,8 @@ import com.badlogic.gdx.Input;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
+import java.util.Objects;
+
 
 public class GameScreen implements Screen {
     public static final float gravity = -18;
@@ -39,7 +41,8 @@ public class GameScreen implements Screen {
     private final Viewport gamePort;
     private final TiledMap map;
     private final OrthogonalTiledMapRenderer renderer;
-    private boolean isOver;
+    public boolean isOver;
+    public boolean won;
     private final Box2DDebugRenderer debugRenderer;
     public final William william;
     private final GameContactListener gcl;
@@ -48,6 +51,7 @@ public class GameScreen implements Screen {
     private final Music music;
     private final Stage stage;
     private final Array<Enemy> enemies;
+    private final Array<Collectable> collectables;
     public Array<Body> toBeDestroyed;
     public GameScreen(final MyGdxGame game) {
         this.game = game;
@@ -62,9 +66,10 @@ public class GameScreen implements Screen {
         map = new TmxMapLoader().load("Map1.tmx");
         renderer = new OrthogonalTiledMapRenderer(map, 1 / MyGdxGame.PPM);
         isOver = false;
+        won = false;
 
         music = Gdx.audio.newMusic(Gdx.files.internal("GameplayMusic.mp3"));
-        music.setVolume(.1f);
+        music.setVolume(.25f);
         music.setLooping(true);
         music.play();
 
@@ -83,53 +88,61 @@ public class GameScreen implements Screen {
         enemies = new Array<>();
 
         //spawn x, spawn y, left bound + 13, right bound - 13
-        enemies.add(new Fox(this, 864, 1200 - 1008, 576 + 20, 912 - 20));
+        enemies.add(new Fox(this, 864, 1200 - 1008, 576 + 40, 912 - 40));
         enemies.add(new Hedgehog(this, 2064, 1200 - 1056, 1920 + 13, 2256 - 13));
-        enemies.add(new Hedgehog(this, 3456, 1200 - 576, 3312 + 13, 3600 - 13));
+        enemies.add(new Fox(this, 3456, 1200 - 576, 3312 + 40, 3600 - 40));
         enemies.add(new Hedgehog(this, 2832, 1200 - 528, 2640 + 13, 3072 - 13));
         enemies.add(new Hedgehog(this, 2160, 1200 - 624, 1920 + 13, 2496 - 13));
         toBeDestroyed = new Array<>();
 
+        collectables = new Array<>();
+        collectables.add(new Collectable(world, 864, 1200 - 192, "Antler.png"));
+
         //do not move this above william = new William(world);
-        gcl = new GameContactListener(this, batch,game, music);
+        gcl = new GameContactListener(this);
         world.setContactListener(gcl);
+
+
     }
 
     @Override
     public void render(float delta) {
-        if(william.getY() < 0f || william.health == 0){
-            isOver = true;
-            game.setScreen(new GameOverScreen(game, music));
-            music.stop();
-            dispose();
+        if(william.getY() < 0f || william.health <= 0) {
+            endGame(new GameOverScreen(game, music));
+        } else if (won) {
+            endGame(new WinScreen(game, music));
         } else {
             gcl.buck(delta);
             handleInput(delta);
             william.update(delta);
             updateEnemies(delta);
-            renderGame(delta);
+            renderGame();
             hud.stage.act(delta);
             hud.stage.draw();
         }
     }
 
     // Method for rendering the game
-    private void renderGame(float delta) {
+    private void renderGame() {
         if(!isOver) {
             while (toBeDestroyed.size > 0) {
                 Body tbd = toBeDestroyed.pop();
                 for(Enemy e: enemies) {
                     if (e.body.equals(tbd)) {
                         e.isDestroyed = true;
-                        e.setPosition(-100, -100);
+                        break;
+                    }
+                }
+                for(Collectable c: collectables) {
+                    if (c.body.equals(tbd)) {
+                        c.isCollected = true;
                         break;
                     }
                 }
                 world.destroyBody(tbd);
             }
-
             ScreenUtils.clear(.5f, .8f, .8f, 1);
-
+            debugRenderer.render(world, camera.combined);
 
             //Set camera
             camera.position.set(william.getX() + william.getWidth() / 2,
@@ -153,10 +166,12 @@ public class GameScreen implements Screen {
             batch.begin();
             william.draw(batch);
             drawEnemies(batch);
+            drawCollectables(batch);
+
             batch.end();
 
             world.step(1 / 60f, 6, 2);
-            debugRenderer.render(world, camera.combined);
+//            debugRenderer.render(world, camera.combined);
         }
     }
 
@@ -182,10 +197,10 @@ public class GameScreen implements Screen {
             william.body.applyLinearImpulse(new Vector2(0, 10f), william.body.getWorldCenter(), true);
             william.inAir = true;
         } else if (william.inAir && william.rightTouching && (Gdx.input.isKeyJustPressed(Input.Keys.UP) || Gdx.input.isKeyJustPressed(Input.Keys.W))) {
-            william.body.applyLinearImpulse(new Vector2(-6f, 7f), william.body.getWorldCenter(), true);
+            william.body.applyLinearImpulse(new Vector2(-6f, 8f), william.body.getWorldCenter(), true);
             william.isLeft = true;
         } else if (william.inAir && william.leftTouching && (Gdx.input.isKeyJustPressed(Input.Keys.UP) || Gdx.input.isKeyJustPressed(Input.Keys.W))) {
-            william.body.applyLinearImpulse(new Vector2(6f, 7f), william.body.getWorldCenter(), true);
+            william.body.applyLinearImpulse(new Vector2(6f, 8f), william.body.getWorldCenter(), true);
             william.isLeft = false;
         }
 
@@ -205,9 +220,18 @@ public class GameScreen implements Screen {
         }
 
     }
+    private void drawCollectables(SpriteBatch batch) {
+        for (Collectable c: collectables) {
+            if (!c.isCollected) {
+                c.draw(batch);
+            }
+        }
+    }
     private void drawEnemies(SpriteBatch batch) {
         for (Enemy e: enemies) {
-            e.draw(batch);
+            if (!e.isDestroyed) {
+                e.draw(batch);
+            }
         }
     }
     private void updateEnemies(float delta) {
@@ -273,7 +297,12 @@ public class GameScreen implements Screen {
             shape = new PolygonShape();
             shape.setAsBox(rec.getWidth() / 2 / MyGdxGame.PPM, rec.getHeight() / 2 / MyGdxGame.PPM);
             fDef.shape = shape;
-            fDef.isSensor = true;
+            if (Objects.equals(object.getName(), "door")) {
+                fDef.isSensor = true;
+            } else {
+                fDef.density = 1;
+                fDef.friction = 1;
+            }
 
             Gdx.app.log(object.getName(), object.getName());
             body.createFixture(fDef).setUserData(object.getName());
@@ -281,6 +310,12 @@ public class GameScreen implements Screen {
         }
     }
 
+    private void endGame(Screen screen) {
+        isOver = true;
+        game.setScreen(screen);
+        music.stop();
+        dispose();
+    }
 
 
     @Override

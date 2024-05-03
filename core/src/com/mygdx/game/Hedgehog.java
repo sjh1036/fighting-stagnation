@@ -27,7 +27,6 @@ public class Hedgehog extends Enemy {
         stateTime = 0;
         setSize(128.5f / MyGdxGame.PPM, 72.375f / MyGdxGame.PPM);
 
-
     }
     @Override
     public void update(float delta) {

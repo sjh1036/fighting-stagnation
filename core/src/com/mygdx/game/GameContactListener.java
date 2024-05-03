@@ -2,9 +2,7 @@ package com.mygdx.game;
 
 import com.badlogic.gdx.Gdx;
 
-import com.badlogic.gdx.audio.Music;
 import com.badlogic.gdx.audio.Sound;
-import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.physics.box2d.Contact;
 import com.badlogic.gdx.physics.box2d.ContactImpulse;
 import com.badlogic.gdx.physics.box2d.ContactListener;
@@ -14,17 +12,19 @@ import com.badlogic.gdx.physics.box2d.Manifold;
 import java.util.Objects;
 
 public class GameContactListener implements ContactListener {
-
     public Sound thud;
     public Sound get;
+    public Sound wisp;
     public William william;
     private final GameScreen gameScreen;
 
 
-    public GameContactListener(GameScreen gameScreen, SpriteBatch batch, MyGdxGame game, Music music) {
+    public GameContactListener(GameScreen gameScreen) {
         this.gameScreen = gameScreen;
         thud = Gdx.audio.newSound(Gdx.files.internal("thud.mp3"));
         get = Gdx.audio.newSound(Gdx.files.internal("complete.mp3"));
+        wisp = Gdx.audio.newSound(Gdx.files.internal("wisp2.mp3"));
+
         this.william = gameScreen.william;
     }
 
@@ -34,11 +34,10 @@ public class GameContactListener implements ContactListener {
         Fixture fixB = contact.getFixtureB();
 
         if (fixA.getUserData() == "william" || fixB.getUserData() == "william") {
-            Fixture will = fixA.getUserData() == "william" ? fixA : fixB;
             Fixture other = fixA.getUserData() == "william" ? fixB : fixA;
 
             if (Objects.equals(other.getUserData(), "hedgehog") || Objects.equals(other.getUserData(), "fox")){
-                if (!william.attacking) {
+                if (!(william.attacking && (william.rightTouching || william.leftTouching))) {
                     william.takeDamage();
                 }
 
@@ -48,33 +47,33 @@ public class GameContactListener implements ContactListener {
         }
 
         if (fixA.getUserData() == "bottom" || fixB.getUserData() == "bottom") {
-            Fixture bottom = fixA.getUserData() == "bottom" ? fixA : fixB;
             Fixture other = fixA.getUserData() == "bottom" ? fixB : fixA;
 
-            if (Objects.equals(other.getUserData(), "hedgehog") || Objects.equals(other.getUserData(), "fox")){
-                if (william.attacking) {
-                    gameScreen.toBeDestroyed.add(other.getBody());
-                } else {
-                    william.takeDamage();
-                }
-
-
-            } else if (Objects.equals(other.getUserData(), "spikes")) {
-                william.takeDamage();
+            if (Objects.equals(other.getUserData(), "door")) {
+                get.play();
+                gameScreen.won = true;
+            } else if (Objects.equals(other.getUserData(), "horn")) {
+                get.play();
+                gameScreen.toBeDestroyed.add(other.getBody());
             } else {
-                thud.play(.25f);
+                thud.play(.65f);
                 william.inAir = false;
             }
-
         }
 
         if (fixA.getUserData() == "right" || fixB.getUserData() == "right") {
-            Fixture right = fixA.getUserData() == "right" ? fixA : fixB;
             Fixture other = fixA.getUserData() == "right" ? fixB : fixA;
 
-
-            if (Objects.equals(other.getUserData(), "hedgehog") || Objects.equals(other.getUserData(), "fox")){
+            if (Objects.equals(other.getUserData(), "door")) {
+                get.play();
+                gameScreen.won = true;
+            } else if (Objects.equals(other.getUserData(), "horn")) {
+                get.play();
+                gameScreen.toBeDestroyed.add(other.getBody());
+            } else if (Objects.equals(other.getUserData(), "hedgehog") || Objects.equals(other.getUserData(), "fox")){
                 if (william.isLeft && william.attacking) {
+                    william.rightTouching = true;
+                    wisp.play(.35f);
                     gameScreen.toBeDestroyed.add(other.getBody());
                 }
             } else {
@@ -84,22 +83,23 @@ public class GameContactListener implements ContactListener {
         }
 
         if (fixA.getUserData() == "left" || fixB.getUserData() == "left") {
-            Fixture left = fixA.getUserData() == "left" ? fixA : fixB;
             Fixture other = fixA.getUserData() == "left" ? fixB : fixA;
 
-
-            if (Objects.equals(other.getUserData(), "hedgehog") || Objects.equals(other.getUserData(), "fox")){
+            if (Objects.equals(other.getUserData(), "door")) {
+                get.play();
+                gameScreen.won = true;
+            } else if (Objects.equals(other.getUserData(), "horn")) {
+                get.play();
+                gameScreen.toBeDestroyed.add(other.getBody());
+            } else if (Objects.equals(other.getUserData(), "hedgehog") || Objects.equals(other.getUserData(), "fox")){
                 if (!william.isLeft && william.attacking) {
+                    william.leftTouching = true;
+                    wisp.play(.35f);
                     gameScreen.toBeDestroyed.add(other.getBody());
                 }
             } else {
                 william.leftTouching = true;
             }
-
-        }
-        if (fixA.getUserData() == "top" || fixB.getUserData() == "top") {
-            Fixture top = fixA.getUserData() == "top" ? fixA : fixB;
-            Fixture other = fixA.getUserData() == "top" ? fixB : fixA;
 
         }
     }
@@ -108,19 +108,12 @@ public class GameContactListener implements ContactListener {
     public void endContact(Contact contact) {
         Fixture fixA = contact.getFixtureA();
         Fixture fixB = contact.getFixtureB();
-//        if (fixA.getUserData() == "bottom" || fixB.getUserData() == "bottom") {
-//            Fixture bottom = fixA.getUserData() == "bottom" ? fixA : fixB;
-//            Fixture other = fixA.getUserData() == "bottom" ? fixB : fixA;
-//        }
+
         if (fixA.getUserData() == "right" || fixB.getUserData() == "right") {
-//            Fixture right = fixA.getUserData() == "right" ? fixA : fixB;
-//            Fixture other = fixA.getUserData() == "right" ? fixB : fixA;
             william.rightTouching = false;
         }
 
         if (fixA.getUserData() == "left" || fixB.getUserData() == "left") {
-//            Fixture left = fixA.getUserData() == "left" ? fixA : fixB;
-//            Fixture other = fixA.getUserData() == "left" ? fixB : fixA;
             william.leftTouching = false;
         }
 

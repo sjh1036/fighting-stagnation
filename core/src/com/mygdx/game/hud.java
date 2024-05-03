@@ -17,7 +17,6 @@ import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.viewport.FitViewport;
-import com.badlogic.gdx.utils.viewport.Viewport;
 
 public class hud {
     public Stage stage;
@@ -94,6 +93,9 @@ public class hud {
         for (int i = 1; i <= livesRemaining; i++) {
             Image heartImage = new Image(new TextureRegionDrawable(new TextureRegion(heart)));
             table.getCells().get(i).setActor(heartImage).size(25, 20);
+        }
+        if (livesRemaining <= 0) {
+            livesRemaining = 0;
         }
         for(int i = livesRemaining + 1; i < 4; i ++){
             Image empty = new Image(new TextureRegionDrawable(new TextureRegion(emptyHeart)));
